@@ -1,0 +1,4 @@
+pygame-ce>=2.5
+pygbag>=0.9
+pytest>=8
+soundfile>=0.12   # tools only: audio conversion + placeholder beeps

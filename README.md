@@ -1,0 +1,105 @@
+# Álgebra Linear: jogo interativo
+
+Aulas de álgebra linear onde se aprende **mexendo**: arrastar vetores, mover î e ĵ,
+editar matrizes. Sem textos a explicar: o jogador tenta, erra, ouve o narrador e tenta de novo.
+Funciona no computador e no navegador (também no telemóvel).
+
+## Correr
+
+```bash
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python main.py            # menu
+.venv\Scripts\python main.py --aula 2   # entra direto na aula 2
+```
+
+Versão web (abre em http://localhost:8000):
+
+```bash
+.venv\Scripts\pygbag --template web/black.tmpl .
+```
+
+`pygbag --build --template web/black.tmpl .` gera só o site em `build/web/` para publicar.
+
+## Criar uma aula nova
+
+Aulas atuais: **1 Corpo**, **2 Vetores**, **3 Matrizes**. Para criar outra, criar a pasta
+`aulas/aula_4/` com um `lesson.py`:
+
+```python
+from engine import *
+
+titulo = "Combinações"
+
+desafios = [
+    MoverVetor(para=(3, 2), mostrar_alvo=True),
+    SomarVetores((2, 1), (1, 2)),
+    Escalar((1, 2), por=3),
+    MoverBase(matriz=[[2, 0], [0, 1]], ver="forma"),
+    EditarMatriz(alvo=[[1, 2], [0, 1]]),
+    Determinante(area=-2),
+]
+```
+
+A aula aparece sozinha no menu. Se o `lesson.py` tiver um erro, o cartão fica vermelho e o
+jogo continua a funcionar.
+
+| Desafio | O jogador... | Erros que o motor reconhece |
+|---|---|---|
+| `Neutro("+")` / `Neutro("·")` | completa `7 + ▢ = 7` tocando num número | `neutro_trocado` |
+| `Simetrico(a)` | completa `a + ▢ = 0` | `simetrico_inverso` |
+| `Inverso(a)` | completa `a · ▢ = 1` (com `Inverso(0)` a resposta é "não existe") | `simetrico_inverso`, `dividir_por_zero` |
+| `Comutativa(a, b)` / `Comutativa(a, b, "·")` | completa `a + b = b + ▢` | `comutatividade` |
+| `Associativa(a, b, c)` | completa `(a + b) + c = a + (b + ▢)` | `associatividade` |
+| `Distributiva(a, b, c)` | completa `a · (b + c) = a · b + ▢` | `distributividade` |
+| `MoverVetor(para=(x, y))` | arrasta a ponta do vetor até às coordenadas | `trocou_xy`, `sinal`, `quase` |
+| `SomarVetores(v, w)` | encosta o início de w na ponta de v | `ao_contrario`, `quase` |
+| `Escalar(v, por=k)` | arrasta um vetor até k·v | `sinal`, `paralelo`, `quase` |
+| `MoverBase(matriz=...)` | arrasta î e ĵ, a grelha segue (✓ para confirmar) | `trocou_base`, `transposta`, `sinal`, `quase` |
+| `EditarMatriz(alvo=...)` | carrega em +/− nos números até cobrir a forma (✓) | iguais ao MoverBase |
+| `Determinante(area=a)` | arrasta î e ĵ até a área ser a (✓) | `orientacao`, `zero`, `quase` |
+
+Opções em qualquer desafio: `dica_apos=3` (falhas até aparecer a dica) e
+`audio="nome"` (áudio próprio no início desse desafio).
+
+## Áudio (narrador)
+
+Ficheiros `.ogg` com o nome da situação:
+
+- `aulas/_audio/`: partilhados por todas as aulas
+- `aulas/aula_N/audio/`: só dessa aula (substituem os partilhados)
+
+Situações: `intro`, `sucesso`, `erro`, `dica`, `parado`, `fim` e os erros da tabela acima.
+Várias versões da mesma situação (`sucesso_1.ogg`, `sucesso_2.ogg`...) são tocadas à sorte.
+Se faltar o áudio de um erro específico, toca `erro`.
+
+```bash
+.venv\Scripts\python tools/roteiro.py aula_1             # lista o que gravar -> aulas/aula_1/audio/ROTEIRO.md
+.venv\Scripts\python tools/roteiro.py aula_1 --convert   # converte .wav/.mp3 dessa pasta para .ogg
+```
+
+Sem áudio gravado o jogo fica em silêncio (só o feedback visual). Para testar com bips
+provisórios: `tools/sons_teste.py` (apague-os depois). Guião das falas: `docs/falas.md`.
+
+Depois de gravar, corte o silêncio do início e do fim (os originais ficam em `gravacoes_originais/`):
+
+```bash
+.venv\Scripts\python tools/aparar.py
+```
+
+Os áudios vão para o git pelo **Git LFS** (`.gitattributes`), para o repositório não ficar pesado.
+Quem clonar o projeto precisa do Git LFS instalado (vem com o Git para Windows).
+
+## Idioma
+
+Todos os textos do jogo estão em `engine/textos.py` (`pt` e `kea` = kriolu).
+Mudar `IDIOMA = "kea"` troca o jogo todo. Os títulos das aulas e os áudios são escritos/gravados
+na língua que quiser.
+
+## Estrutura
+
+- `engine/`: o motor (desenho, input, áudio, tipos de desafio). Um desafio novo é uma classe em
+  `engine/challenges/` que todas as aulas podem usar.
+- `aulas/`: as aulas
+- `tools/`: roteiro de áudio e sons de teste
+- `tests/`: `python -m pytest`
