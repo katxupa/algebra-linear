@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Cópias das gravações antes de cortar o silêncio (tools/aparar.py) - ficam só no computador
+gravacoes_originais/
