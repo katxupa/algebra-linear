@@ -7,7 +7,7 @@ import sys
 import pygame
 
 from . import progress
-from .audio import init_mixer
+from .audio import AudioBank, init_mixer
 from .lesson.loader import discover
 from .lesson.player import LessonPlayer
 from .ui.menu import Menu
@@ -27,6 +27,7 @@ class App:
         self.aulas = discover()
         self.done = progress.load()
         self.running = True
+        self.bancos: dict[str, AudioBank] = {}
 
         # on the web, pygbag's "toque na tela" page already got the tap that unlocks audio
         self.start_audio()
@@ -39,6 +40,12 @@ class App:
     # ---- navigation ---------------------------------------------------------------
     def start_audio(self) -> None:
         init_mixer()
+
+    def banco(self, aula) -> AudioBank:
+        """One audio bank per aula, kept for the whole session (preloaded clips stay ready)."""
+        if aula.id not in self.bancos:
+            self.bancos[aula.id] = AudioBank(aula.audio_dirs)
+        return self.bancos[aula.id]
 
     def open_menu(self) -> None:
         self.scene = Menu(self)

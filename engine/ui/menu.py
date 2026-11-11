@@ -16,6 +16,10 @@ class Menu:
         self.cards: list[tuple[pygame.Rect, object]] = []
         self.time = 0.0
         self.resize(app.width, app.height)
+        # while the player picks an aula, preload each aula's intro so it starts instantly
+        self.bancos = [app.banco(a) for a in app.aulas if not a.erro]
+        for b in self.bancos:
+            b.preparar(["intro", "sucesso", "erro"])
 
     def resize(self, w: int, h: int) -> None:
         aulas = self.app.aulas
@@ -43,6 +47,9 @@ class Menu:
 
     def update(self, dt: float) -> None:
         self.time += dt
+        for b in self.bancos:           # one clip per frame across all aulas
+            if b.carregar_um():
+                break
 
     def draw(self, surf) -> None:
         surf.fill(theme.BG)

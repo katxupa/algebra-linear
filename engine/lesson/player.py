@@ -4,7 +4,6 @@ from __future__ import annotations
 import pygame
 
 from .. import theme
-from ..audio import AudioBank
 from ..challenges.base import Ctx, SUCESSO, ERRO
 from ..coords import Camera
 from ..scene import draw
@@ -22,7 +21,8 @@ class LessonPlayer:
     def __init__(self, app, aula):
         self.app = app
         self.aula = aula
-        self.audio = AudioBank(aula.audio_dirs)
+        self.audio = app.banco(aula)   # shared with the menu, which already preloaded the intro
+        self._overlays: dict = {}
         self.back = Button("back", radius=26)
         self.ok = Button("check", theme.OK, radius=34)
         self.shake = Shake()
@@ -58,6 +58,23 @@ class LessonPlayer:
         self.resize(self.app.width, self.app.height)
         if self.d.audio:
             self.audio.play(self.d.audio, interrupt=False)
+        self.audio.preparar(self._chaves_provaveis())
+
+    def _chaves_provaveis(self) -> list[str]:
+        """Clips that may play during this challenge, most likely first."""
+        keys = [SUCESSO, ERRO, *self.d.ERROS.keys(), "dica", "parado"]
+        nxt = self.idx + 1
+        if nxt < len(self.aula.desafios):
+            if self.aula.desafios[nxt].audio:
+                keys.append(self.aula.desafios[nxt].audio)
+        else:
+            keys.append("fim")
+        return keys
+
+    def _calmo(self) -> bool:
+        """Good moment to decode audio: nobody dragging, no feedback animation running."""
+        busy_fx = self.flash_ok.active or self.flash_bad.active or self.shake.active
+        return not busy_fx and not pygame.mouse.get_pressed()[0]
 
     def _attempt(self) -> None:
         state = self.d.estado()
@@ -130,6 +147,8 @@ class LessonPlayer:
             fx.update(dt)
         self.ok.update(dt)
         self.ctx.hint_alpha = self.blink.alpha
+        if self._calmo():
+            self.audio.carregar_um()      # preload one upcoming clip per calm frame
         if self.finished:
             self.end_tween.update(dt)
             return
@@ -177,8 +196,8 @@ class LessonPlayer:
 
         self._draw_flash(surf, w, h)
         if self.enter.raw < 1:
-            veil = pygame.Surface((w, h), pygame.SRCALPHA)
-            veil.fill((*theme.BG, int(255 * (1 - self.enter.value))))
+            veil = self._overlay("veil", w, h)
+            veil.set_alpha(int(255 * (1 - self.enter.value)))
             surf.blit(veil, (0, 0))
 
     # ---- drawing helpers ----------------------------------------------------------
@@ -192,16 +211,30 @@ class LessonPlayer:
             draw.circle(surf, color, (x0 + k * gap, 30), 6 if k == self.idx else 4)
 
     def _draw_flash(self, surf, w, h) -> None:
-        for fx, color in ((self.flash_bad, theme.BAD), (self.flash_ok, theme.OK)):
+        for fx, name in ((self.flash_bad, "bad"), (self.flash_ok, "ok")):
             if fx.active:
-                a = int(170 * fx.strength)
-                edge = pygame.Surface((w, h), pygame.SRCALPHA)
-                pygame.draw.rect(edge, (*color, a), (0, 0, w, h), 10)
+                edge = self._overlay(name, w, h)
+                edge.set_alpha(int(170 * fx.strength))
                 surf.blit(edge, (0, 0))
         if self.flash_ok.active:
             r = 30 + 40 * (1 - self.flash_ok.strength)
             c = tuple(int(v * self.flash_ok.strength) for v in theme.OK)
             draw.circle(surf, c, (w / 2, h / 2), r, 4)
+
+    def _overlay(self, name: str, w: int, h: int) -> pygame.Surface:
+        """Full-screen overlay surfaces, built once per screen size (not every frame)."""
+        key = (name, w, h)
+        s = self._overlays.get(key)
+        if s is None:
+            if name == "veil":
+                s = pygame.Surface((w, h))
+                s.fill(theme.BG)
+            else:
+                s = pygame.Surface((w, h), pygame.SRCALPHA)
+                color = theme.BAD if name == "bad" else theme.OK
+                pygame.draw.rect(s, (*color, 255), (0, 0, w, h), 10)
+            self._overlays[key] = s
+        return s
 
     def _draw_end(self, surf, w, h) -> None:
         t = self.end_tween.value

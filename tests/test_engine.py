@@ -150,3 +150,27 @@ def test_corpo_answer_is_always_an_option():
               Comutativa(6, 2, "·"), Associativa(1, 1, 1), Distributiva(2, 2, 2)]:
         assert any(pick(d, o) == "sucesso" for o in d.opcoes), d.descricao()
         assert len(d.opcoes) >= 2
+
+
+# ---- audio preloading -------------------------------------------------------------------------
+
+def test_audio_preloading(tmp_path):
+    os.environ["SDL_AUDIODRIVER"] = "dummy"
+    import pygame
+    import numpy as np
+    import soundfile as sf
+    from engine import audio as A
+    pygame.mixer.init()
+    for name in ("sucesso_1", "sucesso_2", "erro"):
+        sf.write(str(tmp_path / f"{name}.wav"), np.zeros(2205, dtype="float32"), 22050)
+    bank = A.AudioBank([str(tmp_path)])
+    bank.preparar(["sucesso", "erro", "nao_existe"])
+    assert bank.pendentes() == 2
+    while bank.carregar_um():
+        pass
+    nxt = bank._next["sucesso"]
+    assert nxt in A._SOUNDS                      # decoded before it is needed
+    assert bank.play("sucesso")
+    assert bank._next["sucesso"] != nxt          # following variant already chosen...
+    assert bank.pendentes() == 1                 # ...and queued for loading
+    assert not bank.play("nao_existe")
