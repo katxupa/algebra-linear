@@ -7,6 +7,7 @@ os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 import pytest
 
 from engine import MoverVetor, SomarVetores, Escalar, MoverBase, EditarMatriz, Determinante
+from engine import Segurar
 from engine.audio import key_of
 from engine.coords import Camera
 from engine.lesson.loader import discover
@@ -414,3 +415,45 @@ def test_column_swap_is_introduced_when_useful():
     assert "colunas" in d.recursos_proprios
     assert {"C1", "C2"} <= d.teclas_novas0
     assert E.proximo_passo(d.inicial, "escalonada", 3, True) == ("troca_col", 1, 2)
+
+
+# ---- scenes -------------------------------------------------------------------------
+
+def test_segurar_the_sum_of_the_forces_decides_what_happens():
+    d = Segurar(peso=4, cordas=[(-2, 2)])
+    d.iniciar()
+    assert d.alvo == Vec2(2, 2)
+    assert not d.tip.pos.close(d.alvo)            # never starts solved
+    for pos, esperado in [((2, 1), "caiu"), ((2, 4), "voou"), ((3, 2), "de_lado"), ((2, 2), "sucesso")]:
+        d.tip.pos = Vec2(*pos)
+        assert d.avaliar() == esperado
+    assert d.queda is None                        # safe: nothing falls
+
+
+def test_segurar_fall_follows_the_sum_and_ends():
+    class Ctx:
+        dt, time = 0.1, 0.0
+
+    d = Segurar(peso=3)
+    d.iniciar()
+    assert d.alvo == Vec2(0, 3)
+    d.tip.pos = Vec2(1, 0)
+    assert d.avaliar() == "caiu"
+    for _ in range(8):
+        d.update(Ctx)
+    desloc = d._desloc()
+    assert desloc.y < -2 and abs(desloc.cross(d.queda[1])) < 1e-6   # moves along the sum (1, -3)
+    assert d._mergulho() is not None              # already hit the water
+    for _ in range(20):
+        d.update(Ctx)
+    assert d.queda is None                        # back on the plank, ready to try again
+
+
+def test_segurar_with_wind_and_first_scene_gets_the_intro_clip():
+    a, b = Segurar(peso=4, cordas=(-1, 2), vento=(3, 0)), Segurar(peso=3)
+    assert a.alvo == Vec2(-2, 2)
+    aula = [MoverVetor(para=(1, 2)), a, b]
+    for i, d in enumerate(aula):
+        d.no_contexto(aula, i)
+    assert a.audio == "cena_cordas" and b.audio is None
+

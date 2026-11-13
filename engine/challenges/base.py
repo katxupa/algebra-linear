@@ -45,6 +45,8 @@ class Desafio:
     painel = False
     #: False: no coordinate grid behind the challenge (e.g. number puzzles)
     plano = True
+    #: False: hide the basis vectors î/ĵ (the scene has its own vectors)
+    base = True
     #: height in pixels of the bottom panel (when `painel = True`)
     painel_altura = 210
 

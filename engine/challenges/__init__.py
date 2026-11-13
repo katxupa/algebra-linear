@@ -3,8 +3,9 @@ from .vetores import MoverVetor, SomarVetores, Escalar
 from .matrizes import MoverBase, EditarMatriz, Determinante
 from .corpo import Neutro, Simetrico, Inverso, Comutativa, Associativa, Distributiva
 from .escalonar import Escalonar
+from .cenas import Segurar
 
 __all__ = ["Desafio", "MoverVetor", "SomarVetores", "Escalar",
            "MoverBase", "EditarMatriz", "Determinante",
            "Neutro", "Simetrico", "Inverso", "Comutativa", "Associativa", "Distributiva",
-           "Escalonar"]
+           "Escalonar", "Segurar"]

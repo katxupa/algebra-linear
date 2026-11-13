@@ -4,6 +4,9 @@ Aulas de álgebra linear onde se aprende **mexendo**: arrastar vetores, mover î
 editar matrizes. Sem textos a explicar: o jogador tenta, erra, ouve o narrador e tenta de novo.
 Funciona no computador e no navegador (também no telemóvel).
 
+**Jogar no navegador:** <https://katxupa.github.io/algebra-linear/> (publicado sozinho a cada
+push na `main`, pelo workflow `.github/workflows/pages.yml`).
+
 ## Correr
 
 ```bash
@@ -41,6 +44,8 @@ desafios = [
 ]
 ```
 
+A matéria segue a sebenta de ALGA I: ver [docs/materia.md](docs/materia.md).
+
 A aula aparece sozinha no menu. Se o `lesson.py` tiver um erro, o cartão fica vermelho e o
 jogo continua a funcionar.
 
@@ -56,6 +61,7 @@ jogo continua a funcionar.
 | `MoverVetor(para=(x, y))` | arrasta a ponta do vetor até às coordenadas | `trocou_xy`, `sinal`, `quase` |
 | `SomarVetores(v, w)` | encosta o início de w na ponta de v | `ao_contrario`, `quase` |
 | `Escalar(v, por=k)` | arrasta um vetor até k·v | `sinal`, `paralelo`, `quase` |
+| `Segurar(peso=p, cordas=[...], vento=(x, y))` | cena: um boneco pendurado sobre a água. Arrasta a força que falta para a soma dar zero e carrega em ✓; se a soma não for zero, o boneco vai atrás dela | `caiu`, `voou`, `de_lado` |
 | `MoverBase(matriz=...)` | arrasta î e ĵ, a grelha segue (✓ para confirmar) | `trocou_base`, `transposta`, `sinal`, `quase` |
 | `EditarMatriz(alvo=...)` | carrega em +/− nos números até cobrir a forma (✓) | iguais ao MoverBase |
 | `Determinante(area=a)` | arrasta î e ĵ até a área ser a (✓) | `orientacao`, `zero`, `quase` |

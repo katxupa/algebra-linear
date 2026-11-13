@@ -119,6 +119,16 @@
 | `ao_contrario_1` | encostou a ponta em vez do início | "Ao contrário! O início de um encosta na PONTA do outro. Como comboio." |
 | `paralelo_1` | direção certa, tamanho errado | "Direção certa! Agora estica… ou encolhe. Não sei, mas mexe." |
 
+### Cena das cordas (o boneco pendurado sobre a água)
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `cena_cordas_1` | a cena aparece pela primeira vez | "Este sou eu depois de três pratos de cachupa. Segura-me aí, que eu não sei nadar!" |
+| `cena_cordas_2` | idem | 🎭 "A soma das forças tem de ser zero." E tu: "Tradução: se a conta falhar, vou ao banho." |
+| `caiu_1` | a soma aponta para baixo: cai à água | "Splash! Faltou força para cima. O tubarão agradece." |
+| `caiu_2` | idem | "Glub, glub… A culpa foi da tua conta, não da cachupa!" |
+| `voou_1` | a soma aponta para cima: sai disparado | "Eeei! Força a mais! Vou mandar um postal da lua." |
+| `de_lado_1` | sobra força para a esquerda ou para a direita | "Para cima está certo… mas estou a ir de lado! Olha a esquerda e a direita." |
+
 ---
 
 ## Aula 3: Matrizes (`aulas/aula_3/audio/`)

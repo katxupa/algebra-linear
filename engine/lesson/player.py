@@ -189,7 +189,7 @@ class LessonPlayer:
         base_ox = self.cam.ox
         self.cam.ox = base_ox + self.shake.offset
         if self.d.plano:
-            draw_plane(surf, self.cam, self.d.matriz(), show_basis=True)
+            draw_plane(surf, self.cam, self.d.matriz(), show_basis=self.d.base)
         if self.hint:
             self.d.desenhar_dica(surf, self.ctx)
         self.d.desenhar(surf, self.ctx)
