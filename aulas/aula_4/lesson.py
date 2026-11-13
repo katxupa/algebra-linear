@@ -28,4 +28,16 @@ desafios = [
     Escalonar([[1, 2, 3],
                [4, 5, 6],
                [7, 8, 9]], aumentada=False),
+    # característica: o número de pivots depois de escalonar (sebenta 3.2)
+    Caracteristica([[1, 2, 3],
+                    [0, 1, 4],
+                    [0, 0, 5]]),
+    Caracteristica([[1, 2, 3],
+                    [0, 1, 4],
+                    [0, 0, 0]]),
+    Caracteristica([[1, 2],
+                    [2, 4]]),
+    Caracteristica([[1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9]]),
 ]

@@ -133,6 +133,112 @@
 
 ---
 
+## Aula 3: Operações com Matrizes (`aulas/aula_3/audio/`)
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "Agora as matrizes fazem contas umas com as outras. Somar é fácil. Multiplicar… respira fundo." |
+| `intro_2` | 🎭 "O produto faz-se linha por coluna." E tu: "Linha da primeira, coluna da segunda. Como dar um aperto de mão de lado." |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `nao_transpos_1` | copiou a matriz sem transpor | "Copiaste igualzinho! Transpor é deitar as colunas: a primeira linha vira primeira coluna." |
+| `simetrica_trocada_1` | confundiu simétrica com anti-simétrica | "Quase! Simétrica é espelho igual. Anti-simétrica é espelho com o sinal trocado." |
+| `sinal_1` | somou em vez de subtrair | "Era para subtrair! O sinal está lá em cima, não é enfeite." |
+| `tipo_de_dentro_1` | usou os números de dentro para o tipo do produto | "Os de dentro só servem para ver se dá. O tipo do resultado são os de fora!" |
+| `nao_compativel_1` | deu um tipo a um produto que não existe | "Esse produto não existe! As colunas da primeira têm de bater com as linhas da segunda." |
+| `entrada_a_entrada_1` | multiplicou entrada por entrada | "Não é casa com casa! É linha vezes coluna: multiplica e soma." |
+| `ordem_trocada_1` | calculou B · A em vez de A · B | "Fizeste ao contrário! Nas matrizes, A vezes B não é B vezes A. Elas são esquisitas." |
+| `incompleto_1` | está certo, mas faltam entradas | "Até aí está certo. Agora acaba, que eu não vou preencher por ti." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Já multiplicas matrizes! Há gente no terceiro ano que ainda foge disto." |
+| `fim_2` | 🎭 "A multiplicação de matrizes não é comutativa." E tu: "Tradução: a ordem importa. Como vestir as meias e os sapatos." |
+
+---
+
+## Aula 6: Matriz Inversa (`aulas/aula_6/audio/`)
+
+Usa também as situações da Aula 4 (`nao_reduzida`, `multiplicar_por_zero`, `mesma_linha`, `comando`).
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "A inversa é o botão de desfazer das matrizes. Quem me dera um para as minhas notas." |
+| `intro_2` | 🎭 "Colocamos a identidade ao lado e escalonamos." E tu: "Quando a esquerda virar identidade, a direita é a inversa. Magia, mas com contas." |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `det_zero_1` | disse que é regular, mas o determinante é 0 | "Essa não tem inversa! Uma linha é cópia da outra. Copiar não vale, nem nas matrizes." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Inversa encontrada! Agora já sabes desfazer o que uma matriz fez." |
+
+---
+
+## Aula 7: Determinantes (`aulas/aula_7/audio/`)
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "O determinante: um número só que diz se a matriz presta ou não." |
+| `intro_2` | 🎭 "O determinante de ordem dois é a diagonal principal menos a secundária." E tu: "Cruz! Este vezes aquele, menos o outro vezes o outro." |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `sinal_1` | valor certo, sinal errado | "O número está certo, o sinal não. Tão perto e tão longe." |
+| `so_diagonal_1` | multiplicou só a diagonal principal | "Só a diagonal? Isso é para as triangulares! Aqui tens de fazer a conta toda." |
+| `somou_1` | somou os dois produtos | "É MENOS a outra diagonal. Menos! Quem soma aqui chumba aqui." |
+| `sinal_cofator_1` | esqueceu o sinal do cofator | "Esqueceste o sinal! Os cofatores são como um tabuleiro de xadrez: mais, menos, mais, menos." |
+| `entrada_1` | respondeu com a entrada em vez do cofator | "Isso é o número que lá está! O cofator é o determinante do que sobra quando riscas a linha e a coluna." |
+| `troca_sinal_1` | trocou linhas e esqueceu o sinal | "Trocaste duas linhas? Então o determinante troca de sinal. Ele é sensível." |
+| `fator_esquecido_1` | multiplicou uma linha e esqueceu o determinante | "Se a linha ficou três vezes maior, o determinante também fica. Ele vê tudo." |
+| `combina_muda_1` | achou que somar linhas muda o determinante | "Somar a uma linha um múltiplo de outra não muda nada no determinante. É a única operação que sai de graça!" |
+| `det_soma_1` | somou os determinantes no produto | "No produto de matrizes, os determinantes multiplicam-se. Não se somam!" |
+| `fator_n_1` | multiplicou por k só uma vez | "O número sai de cada linha! Duas linhas, sai duas vezes." |
+| `det_transposta_1` | achou que transpor muda o determinante | "Transpor não muda o determinante. Podes deitar a matriz à vontade." |
+| `det_inversa_1` | não inverteu o determinante | "A inversa desfaz, então o determinante dela é um sobre o outro." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Determinantes dominados! Agora olhas para uma matriz e já sabes se ela tem conserto." |
+
+---
+
+## Aula 8: Cramer e Adjunta (`aulas/aula_8/audio/`)
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "Última aula! Se chegaste aqui, já sabes mais do que eu. O que não é difícil." |
+| `intro_2` | 🎭 "A regra de Cramer resolve o sistema só com determinantes." E tu: "Trocas uma coluna, fazes dois determinantes, divides. Sem escalonar nada!" |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `nao_transpos_1` | escreveu os cofatores sem transpor | "Faltou transpor! A adjunta é a matriz dos cofatores… deitada." |
+| `sinal_cofator_1` | esqueceu os sinais dos cofatores | "Os sinais! Tabuleiro de xadrez, lembras-te? Mais, menos, menos, mais." |
+| `faltou_dividir_1` | esqueceu de dividir pelo determinante | "Está quase! Falta dividir tudo pelo determinante." |
+| `coluna_errada_1` | usou a coluna de outra incógnita | "Coluna errada! Para o x dois, trocas a segunda coluna. O número da incógnita manda." |
+| `linha_coluna_1` | substituiu uma linha em vez de uma coluna | "É a coluna que sai, não a linha! Os termos independentes entram de pé." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Acabaste a sebenta toda! Vai lá fazer o teste. E depois ensina-me." |
+| `fim_2` | 🎭 "Parabéns, concluíram a matéria." E tu: "Ouviste? Até ele ficou sem palavras." |
+
+---
+
 ## Aula 9: Extra: Vetores (`aulas/aula_9/audio/`)
 
 ### `intro`
@@ -255,4 +361,14 @@ Usa as mesmas situações da Aula 4 (`nao_reduzida`, `multiplicar_por_zero`, `me
 |---|---|
 | `fim_1` | "Sistema resolvido! Já podes dividir a conta do jantar sem discussões." |
 | `fim_2` | 🎭 "O conjunto-solução está correto." E tu: "Ele quis dizer: boa!" |
+
+### Classificar sistemas (Aula 5) e característica (Aula 4)
+| Ficheiro | Onde | Quando | Fala |
+|---|---|---|---|
+| `contou_linhas_1` | Aula 4 | contou as linhas todas na característica | "Linha de zeros não conta! A característica são só as linhas que sobram com pivot." |
+| `linha_impossivel_1` | Aula 5 | disse possível, mas há uma linha 0 = número | "Olha a última linha: zero igual a cinco?! Isso não existe. Sistema impossível." |
+| `incognita_livre_1` | Aula 5 | disse determinado, mas há incógnitas livres | "Há mais letras do que pivots! Sobra letra livre, por isso há infinitas soluções." |
+| `nao_impossivel_1` | Aula 5 | disse impossível, mas tem solução | "Calma, este tem solução! Não desistas tão cedo, isso é a minha especialidade." |
+| `homogeneo_impossivel_1` | Aula 5 | disse impossível num sistema homogéneo | "Tudo igual a zero nunca é impossível: pôr tudo a zero funciona sempre!" |
+| `contou_pivots_1` | Aula 5 | deu os pivots em vez das incógnitas livres | "Esses são os pivots. O grau é o que sobra: incógnitas menos pivots." |
 

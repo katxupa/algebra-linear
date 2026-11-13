@@ -559,3 +559,141 @@ def test_submatriz_both_notations_give_the_same_answer():
     assert a.avaliar() == "parenteses_trocados"
     a.tl, a.tc = {1, 3}, set()
     assert a.avaliar() == "so_linha"
+
+
+# ---- the rest of the sebenta: matrix algebra, systems, inverse, determinants, Cramer ---------------
+
+from engine import matrizes as MT
+from engine import (Transposta, Soma, VezesEscalar, Produto, Potencia, Formula, Adjunta, InversaAdjunta,
+                    Simetrica, TipoProduto, Caracteristica, Solucao, Classificar, Grau, Regular, Det, Cofator,
+                    DetApos, DetProp, Inversoes, Paridade, CramerMatriz, CramerValor, Inversa,
+                    FechadoEm, SimetricoEm, InversoEm)
+
+H = [[1, -1, 2], [0, 2, 3], [-1, 1, 2]]                 # sebenta, exemplo 6.4
+K = [[1, -1, 2, -1], [0, 2, 3, 2], [-1, 1, 4, 3]]       # sebenta, exemplo 6.11
+
+
+def test_matrix_arithmetic_is_exact():
+    a, b = MT.matriz([[1, 2], [3, 4]]), MT.matriz([[0, 1], [5, -2]])
+    assert MT.produto(a, b) == [[10, -3], [20, -5]] and MT.produto(b, a) == [[3, 4], [-1, 2]]
+    assert MT.transposta(MT.matriz([[1, 2, 3], [4, 5, 6]])) == [[1, 4], [2, 5], [3, 6]]
+    assert MT.det(a) == -2 and MT.det(MT.matriz(H)) == 8
+    assert MT.cofator(MT.matriz(H), 1, 0) == 4                      # A21 = 4, as in the sebenta
+    assert MT.adjunta(a) == [[4, -2], [-3, 1]]
+    assert MT.produto(a, MT.inversa(a)) == [[1, 0], [0, 1]]
+    assert MT.caracteristica(MT.matriz([[1, 2, 3], [4, 5, 6], [7, 8, 9]])) == 2
+    assert MT.inversoes([3, 1, 2]) == 2
+    with pytest.raises(ValueError):
+        MT.produto(a, MT.matriz([[1, 2, 3]]))
+
+
+def test_systems_are_classified_by_the_ranks():
+    assert MT.classificar(MT.matriz([[1, 1, 3], [0, 1, 1]])) == "pd"
+    assert MT.classificar(MT.matriz([[1, 2, 3], [0, 0, 5]])) == "imp"
+    assert MT.classificar(MT.matriz([[1, -2, 3, 1, -3], [2, -1, 3, -1, 0]])) == "pi"
+    d = Classificar([[1, -2, 3, 1, -3], [0, 3, -3, -3, 6]])
+    d.iniciar()
+    d.sel = "sel_pd"
+    assert d.avaliar() == "incognita_livre"
+    d.sel = "sel_pi"
+    assert d.avaliar() == "sucesso"
+    homogeneo = Classificar([[1, 2, 0], [0, 1, 0]])
+    homogeneo.iniciar()
+    homogeneo.sel = "sel_imp"
+    assert homogeneo.avaliar() == "homogeneo_impossivel"
+    assert Grau([[1, -2, 3, 1, -3], [0, 3, -3, -3, 6]]).resposta == 2
+    assert Solucao([[1, 1, 3], [1, -1, 1]], (2, 1)).resposta == "sim"
+    assert Solucao([[1, 1, 3], [1, -1, 1]], (1, 2)).resposta == "nao"
+    c = Caracteristica([[1, 2, 3], [0, 1, 4], [0, 0, 0]])
+    c.iniciar()
+    c.sel = 3
+    assert c.resposta == 2 and c.avaliar() == "contou_linhas"
+
+
+def preencher(d, m):
+    d.iniciar()
+    d.txt = {(r, c): MT.E.fmt(MT.E.frac(v)) for r, row in enumerate(m) for c, v in enumerate(row)}
+    return d.avaliar()
+
+
+def test_fill_in_challenges_recognise_the_typical_wrong_results():
+    a, b = [[1, 2], [3, 4]], [[0, 1], [5, -2]]
+    assert preencher(Produto(a, b), [[10, -3], [20, -5]]) == "sucesso"
+    assert preencher(Produto(a, b), [[0, 2], [15, -8]]) == "entrada_a_entrada"
+    assert preencher(Produto(a, b), [[3, 4], [-1, 2]]) == "ordem_trocada"
+    assert preencher(Transposta(a), a) == "nao_transpos"
+    assert preencher(Soma(a, b), [[1, 3], [8, 2]]) == "sucesso"
+    assert preencher(Soma(a, b, "-"), [[1, 3], [8, 2]]) == "sinal"
+    assert preencher(VezesEscalar(3, a), [[3, 6], [9, 12]]) == "sucesso"
+    assert preencher(Potencia(a, 2), [[1, 4], [9, 16]]) == "entrada_a_entrada"
+    assert preencher(Formula(3, 3, "i ** (j - 1)"), [[1, 1, 1], [1, 2, 4], [1, 3, 9]]) == "sucesso"
+    assert preencher(Adjunta(a), [[4, -3], [-2, 1]]) == "nao_transpos"
+    assert preencher(InversaAdjunta(a), [[4, -2], [-3, 1]]) == "faltou_dividir"
+    assert preencher(InversaAdjunta(a), [[-2, 1], ["3/2", "-1/2"]]) == "sucesso"
+    d = Produto(a, b)
+    d.iniciar()
+    d.txt = {(0, 0): "10"}
+    assert d.avaliar() == "incompleto"            # right so far: the student can check entry by entry
+    d.txt = {(0, 0): "10", (0, 1): "7"}
+    assert d.avaliar() == "erro" and d.erradas == {(0, 1)}
+    d.sel = (1, 1)
+    for key in ("5", "−", "←", "5"):              # typing: 5, minus, erase, 5 again
+        d.escrever(key)
+    assert d.txt[(1, 1)] == "−5"
+
+
+def test_determinant_questions():
+    d = Det([[1, 2], [3, 4]])
+    d.iniciar()
+    for sel, esperado in [(-2, "sucesso"), (2, "sinal"), (4, "so_diagonal"), (10, "somou")]:
+        d.sel = MT.E.frac(sel)
+        assert d.avaliar() == esperado
+    c = Cofator(H, 2, 1)
+    c.iniciar()
+    c.sel = MT.E.frac(-4)
+    assert c.resposta == 4 and c.avaliar() == "sinal_cofator"
+    assert DetApos([[1, 2], [3, 4]], "L1 <-> L2").resposta == 2
+    assert DetApos([[1, 2], [3, 4]], "L1 -> 3L1").resposta == -6
+    assert DetApos([[1, 2], [3, 4]], "L2 -> L2 - 3L1").resposta == -2
+    assert DetProp("produto", 2, 3).resposta == 6
+    assert DetProp("escalar", 3, k=2, n=2).resposta == 12
+    assert DetProp("inversa", 4).resposta == MT.E.frac("1/4")
+    assert Inversoes([3, 1, 2]).resposta == 2 and Paridade([3, 1, 2]).resposta == "p_par"
+    assert Regular(H).resposta == "sim" and Regular([[1, 2], [2, 4]]).resposta == "nao"
+    assert Simetrica([[0, 2], [-2, 0]]).resposta == "m_antissimetrica"
+    assert TipoProduto((2, 3), (3, 2)).resposta == (2, 2)
+    assert TipoProduto((2, 3), (2, 3)).resposta == "nao_existe"
+
+
+def test_cramer_and_the_inverse_by_row_operations():
+    m = CramerMatriz(K, 2)
+    m.iniciar()
+    assert m.lista[m.certa][0] == [[1, -1, 2], [0, 2, 3], [-1, 3, 4]]
+    m.sel = 1
+    assert m.avaliar() == "coluna_errada"
+    s = [[2, 1, 5], [1, 3, 5]]
+    assert CramerValor(s, 1).resposta == 2 and CramerValor(s, 2).resposta == 1
+    with pytest.raises(ValueError):
+        CramerValor([[1, 2, 3], [2, 4, 6]], 1)                    # not a Cramer system
+    inv = Inversa([[1, 2], [3, 4]])
+    inv.iniciar()
+    assert inv.n_coef == 2 and inv.m == MT.matriz([[1, 2, 1, 0], [3, 4, 0, 1]])
+    with pytest.raises(ValueError):
+        Inversa([[1, 2], [2, 4]])
+
+
+def test_n_and_z_are_not_fields():
+    from engine.challenges.corpo import NAO_EXISTE as NE
+    assert FechadoEm("N", 2, "+", 3).resposta == 5
+    assert FechadoEm("N", 3, "-", 5).resposta is NE
+    assert FechadoEm("Z", 3, "-", 5).resposta == -2
+    assert SimetricoEm("N", 3).resposta is NE
+    assert InversoEm("Z", 2).resposta is NE
+    assert InversoEm("Q", 2).resposta == Fraction(1, 2)
+
+
+def test_every_lesson_of_the_sebenta_is_playable():
+    aulas = {a.numero: a for a in discover()}
+    for n in range(1, 9):
+        assert not aulas[n].erro and not aulas[n].em_breve and len(aulas[n].desafios) >= 7
+

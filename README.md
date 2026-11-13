@@ -32,12 +32,12 @@ As aulas seguem a ordem da sebenta de ALGA I:
 |---|---|---|
 | 1 | Corpo | feita |
 | 2 | Matrizes | feita |
-| 3 | Operações com Matrizes | em breve |
+| 3 | Operações com Matrizes | feita |
 | 4 | Escalonamento | feita |
-| 5 | Sistemas | feita (falta classificar sistemas) |
-| 6 | Matriz Inversa | em breve |
-| 7 | Determinantes | em breve |
-| 8 | Cramer e Adjunta | em breve |
+| 5 | Sistemas | feita |
+| 6 | Matriz Inversa | feita |
+| 7 | Determinantes | feita |
+| 8 | Cramer e Adjunta | feita |
 | 9 | Extra: Vetores | feita (fora da sebenta) |
 | 10 | Extra: Matrizes no Plano | feita (fora da sebenta) |
 
@@ -81,6 +81,22 @@ jogo continua a funcionar.
 | `Zerar(A, "triangular superior")` | toca nas entradas que têm de passar a 0 (também `"triangular inferior"` e `"diagonal"`) (✓) | `triangulo_trocado`, `diagonal_apagada`, `incompleto` |
 | `Qual("identidade")` | toca na matriz certa entre quatro (também `"escalar"`, `"diagonal"`, `"nula"`, `"triangular superior"`, `"triangular inferior"`) | `triangulo_trocado`, `diagonal_errada` |
 | `Submatriz(A, ficar=(linhas, colunas))` ou `tirar=(...)` | risca linhas e colunas até sobrar A[linhas \| colunas] ou A(linhas \| colunas) (✓) | `parenteses_trocados`, `so_linha`, `so_coluna` |
+| `Formula(m, n, "i + j")` | preenche a matriz dada por uma regra nos índices | `trocou_ij`, `incompleto` |
+| `Transposta(A)`, `Soma(A, B)`, `VezesEscalar(k, A)`, `Produto(A, B)`, `Potencia(A, 2)` | preenche o resultado, entrada a entrada, num teclado de números; o ✓ marca a vermelho as entradas erradas | `nao_transpos`, `sinal`, `entrada_a_entrada`, `ordem_trocada`, `incompleto` |
+| `Simetrica(A)` | escolhe: simétrica, anti-simétrica ou nenhuma | `simetrica_trocada` |
+| `TipoProduto((2, 3), (3, 2))` | escolhe o tipo do produto, ou "não existe" | `tipo_de_dentro`, `nao_compativel` |
+| `Caracteristica(A)` | escolhe c(A) | `contou_linhas` |
+| `Solucao(S, (2, 1))` | o ponto é solução do sistema? (S é a matriz ampliada) | — |
+| `Classificar(S)`, `Grau(S)` | impossível, possível determinado ou indeterminado; grau de indeterminação | `linha_impossivel`, `incognita_livre`, `nao_impossivel`, `homogeneo_impossivel`, `contou_pivots` |
+| `Regular(A)` | a matriz é regular? | `det_zero` |
+| `Inversa(A)` | leva [A \| I] até [I \| A⁻¹] na calculadora de operações | os do `Escalonar` |
+| `Inversoes(p)`, `Paridade(p)` | inversões e paridade de uma permutação | — |
+| `Det(A)`, `Cofator(A, i, j)` | determinante e cofator | `sinal`, `so_diagonal`, `somou`, `sinal_cofator`, `entrada` |
+| `DetApos(A, "L1 <-> L2")` | o determinante depois de uma operação elementar | `troca_sinal`, `fator_esquecido`, `combina_muda` |
+| `DetProp("produto", 2, 3)` | propriedades: produto, transposta, escalar, inversa | `det_soma`, `fator_n`, `det_transposta`, `det_inversa` |
+| `Adjunta(A)`, `InversaAdjunta(A)` | preenche a adjunta e a inversa = adjunta / determinante | `nao_transpos`, `sinal_cofator`, `faltou_dividir` |
+| `CramerMatriz(S, i)`, `CramerValor(S, i)` | regra de Cramer: a matriz A<sub>i</sub> e o valor de x<sub>i</sub> | `coluna_errada`, `linha_coluna`, `faltou_dividir` |
+| `FechadoEm("N", 3, "-", 5)`, `SimetricoEm("N", 3)`, `InversoEm("Z", 2)` | contas dentro de ℕ, ℤ ou ℚ; se o resultado sai do conjunto, a resposta é "não existe" | `simetrico_inverso` |
 | `Escalonar(matriz, objetivo="escalonada" ou "reduzida")` | monta cada operação elementar numa calculadora (`L3` `→` `L3` `−` `2` `L1` `=`) ou escrevendo no teclado; nada é sugerido; termina com ✓. Opções: `forma="sistema"`, `aumentada=False`, `colunas=True` (operações de coluna: `C1 ↔ C2`, `C2 → C2 − 3C1`, `C1 → 2C1`; num sistema só a troca) | `nao_escalonada`, `nao_reduzida`, `multiplicar_por_zero`, `mesma_linha`, `comando`, `coluna_sistema` |
 | `MoverVetor(para=(x, y))` | arrasta a ponta do vetor até às coordenadas | `trocou_xy`, `sinal`, `quase` |
 | `SomarVetores(v, w)` | encosta o início de w na ponta de v | `ao_contrario`, `quase` |

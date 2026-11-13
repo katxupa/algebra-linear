@@ -22,6 +22,8 @@ desafios = [
     Entrada(A, 1, 2),                          # entradas: primeiro a linha, depois a coluna
     Entrada(A, 3, 1),
     Entrada(B, 2, 4),
+    Formula(2, 2, "i + j"),                    # matriz dada por uma regra nos índices
+    Formula(3, 3, "i ** (j - 1)"),             # a matriz B da sebenta, em ponto pequeno
     Tipo(A),                                   # tipo m × n
     Tipo([[1, -3, 5, 3]]),
     Forma([[1, -3, 5, 3]]),                    # matriz linha, coluna, quadrada, retangular
@@ -35,6 +37,7 @@ desafios = [
     Zerar(E, "diagonal"),
     Qual("escalar"),
     Qual("identidade"),
+    Qual("nula"),
     Submatriz(C, ficar=([1, 3], [2, 3, 4])),   # A[1,3 | 2,3,4]
     Submatriz(C, tirar=([2, 4], [1])),         # A(2,4 | 1): a mesma submatriz
 ]

@@ -26,6 +26,7 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 | `comando` | montou uma operação que não é elementar ou está incompleta | 1, 2, 3, 4, 5, 6, 7, 8, 9 | ⬜ falta |
 | `coluna_sistema` | num sistema, tentou multiplicar/somar colunas (só se pode trocar) | 1, 2, 3, 4, 5, 6, 7, 8, 9 | ⬜ falta |
 | `operacao` | (opcional) fez uma operação válida — som curto de confirmação | 1, 2, 3, 4, 5, 6, 7, 8, 9 | ⬜ falta |
+| `contou_linhas` | contou todas as linhas, mesmo as que ficam nulas depois de escalonar | 10, 11, 12, 13 | ⬜ falta |
 
 ## Desafios
 
@@ -38,3 +39,7 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 7. escalonar matriz 3x4 até forma reduzida
 8. escalonar matriz 3x4 até forma escalonada
 9. escalonar matriz 3x3 até forma escalonada
+10. característica = 3
+11. característica = 2
+12. característica = 1
+13. característica = 2

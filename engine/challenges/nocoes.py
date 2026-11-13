@@ -19,8 +19,8 @@ import random
 
 import pygame
 
+from .. import escalonamento as E
 from .. import theme
-from ..linalg import fmt_num
 from ..scene import draw
 from ..textos import t
 from .base import Desafio, SUCESSO, ERRO
@@ -34,6 +34,11 @@ NOMES = {
     "triangular superior": "tri_sup", "triangular inferior": "tri_inf", "diagonal": "m_diagonal",
     "escalar": "m_escalar", "identidade": "m_identidade", "nula": "m_nula",
 }
+
+
+def fmt_num(v) -> str:
+    """Numbers as the sebenta writes them: exact fractions, a real minus sign. Text stays as it is."""
+    return v if isinstance(v, str) else E.fmt(E.frac(v))
 
 
 def _retangular(m) -> list[list]:
@@ -64,19 +69,40 @@ def e_do_tipo(nome: str, m) -> bool:
 
 
 def _partes(surf, partes, cx, cy, size, max_w) -> None:
-    """Coloured pieces of text on one centred line. A piece is (text, colour) or (text, colour, True)
-    for a subscript. Shrinks to fit `max_w`."""
+    """Coloured pieces of text on one centred line. A piece is (text, colour), or (text, colour, "sub")
+    for a subscript (True also works), or (text, colour, "sup") for a superscript. Arrows are drawn.
+    Shrinks to fit `max_w`."""
+    def modo(p):
+        return None if len(p) < 3 or not p[2] else "sup" if p[2] == "sup" else "sub"
+
+    def tam(p, sz):
+        return int(sz * 0.62) if modo(p) else sz
+
     def largura(sz):
-        return sum(draw.text_width(p[0], int(sz * 0.62) if len(p) > 2 else sz) for p in partes)
+        return sum(draw.text_width(p[0], tam(p, sz)) for p in partes)
 
     while size > 18 and largura(size) > max_w:
         size -= 2
     x = cx - largura(size) / 2
     for p in partes:
-        sub = len(p) > 2
-        sz = int(size * 0.62) if sub else size
-        draw.text(surf, p[0], (x, cy + (size * 0.3 if sub else 0)), sz, p[1], "midleft")
-        x += draw.text_width(p[0], sz)
+        dy = {"sub": size * 0.3, "sup": -size * 0.3, None: 0}[modo(p)]
+        draw.text_setas(surf, p[0], (x, cy + dy), tam(p, size), p[1], "midleft")
+        x += draw.text_width(p[0], tam(p, size))
+
+
+def mini_matriz(surf, m, centro, size, cor=theme.TEXT) -> None:
+    """A small matrix with brackets, centred (no interaction). Shrinks wide entries to fit."""
+    txt = [[fmt_num(v) for v in r] for r in m]
+    col_w = max(draw.text_width(s, size) for r in txt for s in r) + size * 0.5
+    row_h = size * 0.95
+    w, h = col_w * len(m[0]), row_h * len(m)
+    x0, y0 = centro[0] - w / 2, centro[1] - h / 2
+    for r, row in enumerate(txt):
+        for c, s in enumerate(row):
+            draw.text(surf, s, (x0 + col_w * (c + 0.5), y0 + row_h * (r + 0.5)), size, cor)
+    tick = size * 0.25
+    for lado, x in ((-1, x0 - 4), (1, x0 + w + 4)):
+        pygame.draw.lines(surf, cor, False, [(x - lado * tick, y0), (x, y0), (x, y0 + h), (x - lado * tick, y0 + h)], 2)
 
 
 class Grade:
@@ -86,11 +112,16 @@ class Grade:
         self.m = m
         self.rows, self.cols = len(m), len(m[0])
         self.cell, self.x0, self.y0 = 40, 0.0, 0.0
+        self.max_cell = 92
+        self.barra = None            # column index: a dashed bar before it, as in [A | B]
 
-    def layout(self, area: pygame.Rect) -> None:
-        self.cell = int(max(24, min(92, area.w / (self.cols + 1.9), area.h / (self.rows + 1.3))))
-        self.x0 = area.centerx - self.cols * self.cell / 2 + self.cell * 0.4
-        self.y0 = area.centery - self.rows * self.cell / 2 + self.cell * 0.4
+    def layout(self, area: pygame.Rect, folga: bool = True) -> None:
+        """Fit inside `area`. `folga` keeps room for the row / column numbers around the matrix."""
+        f = 1.0 if folga else 0.0
+        self.cell = int(max(22, min(self.max_cell, area.w / (self.cols + 0.5 + 1.4 * f),
+                                    area.h / (self.rows + 0.2 + 1.1 * f))))
+        self.x0 = area.centerx - self.cols * self.cell / 2 + self.cell * 0.4 * f
+        self.y0 = area.centery - self.rows * self.cell / 2 + self.cell * 0.4 * f
 
     def rect(self, r, c) -> pygame.Rect:
         return pygame.Rect(int(self.x0 + c * self.cell), int(self.y0 + r * self.cell), self.cell, self.cell)
@@ -150,6 +181,9 @@ class Grade:
         tick = self.cell * 0.2
         for lado, x in ((-1, self.x0 - 5), (1, self.x0 + self.cols * self.cell + 5)):
             pygame.draw.lines(surf, cor, False, [(x - lado * tick, yt), (x, yt), (x, yb), (x - lado * tick, yb)], 3)
+        if self.barra is not None:
+            bx = self.x0 + self.barra * self.cell
+            draw.dashed_line(surf, theme.TEXT_DIM, (bx, yt + 4), (bx, yb - 4), 2, 6)
 
     def rotulos(self, surf, fora_l=(), fora_c=(), pisca_l=(), pisca_c=(), alpha=1.0) -> None:
         """Row numbers (blue) on the left, column numbers (yellow) on top."""
@@ -178,13 +212,17 @@ class _ComMatriz(Desafio):
     plano = False
     baralhar = True
 
-    def __init__(self, matriz, **kw):
+    barra = None                     # column index of the bar of an augmented matrix [A | B]
+
+    def __init__(self, matriz=None, **kw):
         super().__init__(**kw)
-        self.m = _retangular(matriz)
+        self.m = _retangular(matriz) if matriz is not None else None
         self.opcoes: list = []
 
     def iniciar(self):
-        self.g = Grade(self.m)
+        self.g = Grade(self.m) if self.m else None
+        if self.g:
+            self.g.barra = self.barra
         self.tiles = [Tile(v) for v in self.opcoes]
         if self.baralhar:
             random.shuffle(self.tiles)   # a new order every time: no learning "it is the first one"
@@ -198,7 +236,7 @@ class _ComMatriz(Desafio):
     # ---- layout ---------------------------------------------------------------------
     def layout(self, ctx):
         base = ctx.height * 0.6 if self.tiles else ctx.height - 90
-        self.g.layout(pygame.Rect(16, 124, ctx.width - 32, int(base - 124)))
+        self._layout_matriz(ctx, pygame.Rect(16, 124, ctx.width - 32, int(base - 124)))
         if not self.tiles:
             return
         h = max(52, min(84, int(ctx.width / 7)))
@@ -213,9 +251,13 @@ class _ComMatriz(Desafio):
             x0 = (ctx.width - (n * w + (n - 1) * gap)) / 2
             tl.rect = pygame.Rect(int(x0 + c * (w + gap)), int(ctx.height * 0.66 + r * (h + gap)), w, h)
 
+    def _layout_matriz(self, ctx, area: pygame.Rect) -> None:
+        if self.g:
+            self.g.layout(area)
+
     def _tile(self, valor) -> list:
         """Coloured text pieces shown on a tile."""
-        return [(str(valor), theme.TEXT)]
+        return [(fmt_num(valor) if not isinstance(valor, str) else t(valor), theme.TEXT)]
 
     def _desenhar_tiles(self, surf, ctx):
         for tl in self.tiles:
@@ -258,13 +300,18 @@ class _Escolha(_ComMatriz):
         return was
 
     def desenhar(self, surf, ctx):
-        self.g.desenhar(surf)
+        self._desenhar_matriz(surf, ctx)
         if self.ajuda or ctx.solved:
             self._ajuda(surf, ctx)
         self._desenhar_tiles(surf, ctx)
 
+    def _desenhar_matriz(self, surf, ctx):
+        if self.g:
+            self.g.desenhar(surf)
+
     def _ajuda(self, surf, ctx):
-        self.g.rotulos(surf)
+        if self.g:
+            self.g.rotulos(surf)
 
 
 def _quatro(opcoes: list) -> list:
@@ -578,6 +625,7 @@ class Qual(Desafio):
         if sum(e_do_tipo(nome, m) for m, _ in lista) != 1:
             raise ValueError(f"Qual({nome!r}): exatamente uma das opções tem de ser {nome}")
         self.lista = lista
+        self.certa = next(k for k, (m, _) in enumerate(lista) if e_do_tipo(nome, m))
 
     def iniciar(self):
         self.tiles = [Tile(k) for k in range(len(self.lista))]
@@ -591,8 +639,7 @@ class Qual(Desafio):
     def avaliar(self):
         if self.sel is None:
             return ERRO
-        m, chave = self.lista[self.sel]
-        return SUCESSO if e_do_tipo(self.nome, m) else (chave or ERRO)
+        return SUCESSO if self.sel == self.certa else (self.lista[self.sel][1] or ERRO)
 
     def press(self, ctx, sx, sy):
         for tl in self.tiles:
@@ -608,11 +655,15 @@ class Qual(Desafio):
         was, self.pressed = self.pressed, False
         return was
 
+    def _topo(self, ctx) -> int:
+        """Where the matrix tiles start (subclasses keep room above them)."""
+        return 135
+
     def layout(self, ctx):
         n = len(self.tiles)
         por_linha = n if ctx.width >= n * 190 else 2
         linhas = -(-n // por_linha)
-        topo, fundo = 135, ctx.height - 30
+        topo, fundo = self._topo(ctx), ctx.height - 30
         gap = 18
         lado = int(min(230, (ctx.width - 30 - (por_linha - 1) * gap) / por_linha,
                        (fundo - topo - (linhas - 1) * gap) / linhas))
@@ -629,7 +680,7 @@ class Qual(Desafio):
             borda = theme.GRID_MAJOR if not escolhido else theme.OK if ctx.solved else theme.BAD
             pygame.draw.rect(surf, theme.PANEL_HI if escolhido else theme.PANEL, tl.rect, border_radius=18)
             pygame.draw.rect(surf, borda, tl.rect, 3, border_radius=18)
-            draw.matrix(surf, self.lista[tl.valor][0], tl.rect.center, int(tl.rect.w * 0.2), theme.TEXT)
+            mini_matriz(surf, self.lista[tl.valor][0], tl.rect.center, int(tl.rect.w * 0.2))
 
     def desenhar_alvo(self, surf, ctx):
         _partes(surf, [(t(NOMES[self.nome]), COL), (" ?", theme.TEXT)], ctx.width / 2, ctx.hud_y, 40, ctx.width - 170)

@@ -264,3 +264,64 @@ class Distributiva(Completar):
         super().__init__([a, "·", "(", b, "+", c, ")", "=", a, "·", b, "+", LACUNA],
                          a * c, [a * c, c, a + c, a * b],
                          {c: "distributividade"}, **kw)
+
+
+# ---- operations inside a set: why N and Z are not fields ------------------------------------------
+
+_CONJUNTOS = {
+    "N": ("N = {1, 2, 3, ...}", lambda v: v.denominator == 1 and v >= 1),
+    "Z": ("Z = {..., −2, −1, 0, 1, 2, ...}", lambda v: v.denominator == 1),
+    "Q": ("Q = {frações}", lambda v: True),
+}
+
+
+class _NoConjunto(Completar):
+    """A blank that may only be filled with numbers of N, Z or Q. If the right number is not in the
+    set, the answer is the 'não existe' tile."""
+
+    def __init__(self, conjunto, conta, certo, opcoes, erros=None, **kw):
+        if conjunto not in _CONJUNTOS:
+            raise ValueError(f"conjunto desconhecido {conjunto!r}: usar 'N', 'Z' ou 'Q'")
+        self.rotulo, dentro = _CONJUNTOS[conjunto]
+        certo = _num(certo)
+        resposta = certo if dentro(certo) else NAO_EXISTE
+        validas = [_num(o) for o in opcoes if dentro(_num(o)) and not _same(_num(o), resposta)]
+        super().__init__(conta, resposta, [resposta] + validas[:2] + [NAO_EXISTE],
+                         {k: v for k, v in (erros or {}).items() if dentro(_num(k))}, **kw)
+
+    def desenhar_alvo(self, surf, ctx):
+        size = 38
+        while size > 18 and draw.text_width(self.rotulo, size) > ctx.width - 170:
+            size -= 2
+        draw.text(surf, self.rotulo, (ctx.width / 2, ctx.hud_y), size, theme.VEC)
+
+
+class FechadoEm(_NoConjunto):
+    """a + b, a − b, a · b or a / b inside a set: FechadoEm("N", 3, "-", 5) has no answer in N."""
+
+    def __init__(self, conjunto, a, op, b, **kw):
+        a, b = _num(a), _num(b)
+        op = {"-": "−", "*": "·", ":": "/"}.get(op, op)
+        certo = {"+": a + b, "−": a - b, "·": a * b, "/": a / b if b else None}[op]
+        if certo is None:
+            raise ValueError("FechadoEm: divisão por zero")
+        super().__init__(conjunto, [a, op, b, "=", LACUNA], certo,
+                         [abs(a - b), a + b, a * b, a, b, abs(a - b) + 1], **kw)
+
+
+class SimetricoEm(_NoConjunto):
+    """a + ▢ = 0 inside a set: in N there is no such number."""
+
+    def __init__(self, conjunto, a, **kw):
+        a = _num(a)
+        super().__init__(conjunto, [a, "+", LACUNA, "=", 0], -a, [a, 1, a + 1, 0], **kw)
+
+
+class InversoEm(_NoConjunto):
+    """a · ▢ = 1 inside a set: in Z only 1 and −1 have an inverse, so Z is not a field."""
+    ERROS = {"simetrico_inverso": "confundiu o inverso (1/a) com o simétrico (−a)"}
+
+    def __init__(self, conjunto, a, **kw):
+        a = _num(a)
+        super().__init__(conjunto, [a, "·", LACUNA, "=", 1], 1 / a, [-a, a, 1, 0], {-a: "simetrico_inverso"}, **kw)
+

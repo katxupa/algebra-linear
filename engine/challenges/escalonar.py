@@ -41,9 +41,11 @@ class Escalonar(Desafio):
     confirmar = True
     painel = True
     plano = False
+    ver_sistema = True          # offer the "sistema / matriz" view when the matrix is augmented
 
     def __init__(self, matriz, objetivo: str = "escalonada", aumentada: bool = True,
-                 forma: str = "matriz", colunas: bool = False, variaveis=None, recursos=None, **kw):
+                 forma: str = "matriz", colunas: bool = False, variaveis=None, recursos=None,
+                 n_coef: int | None = None, **kw):
         super().__init__(**kw)
         self.inicial = E.matriz(matriz)
         self.objetivo = objetivo
@@ -51,7 +53,7 @@ class Escalonar(Desafio):
         self.forma_inicial = forma if aumentada else "matriz"
         self.colunas = colunas
         cols = len(self.inicial[0])
-        self.n_coef = cols - 1 if aumentada else cols
+        self.n_coef = n_coef if n_coef is not None else (cols - 1 if aumentada else cols)
         if variaveis:
             self.nomes0 = list(variaveis)
         elif self.n_coef <= 4 and aumentada:
@@ -343,7 +345,7 @@ class Escalonar(Desafio):
                 self.keys_ui.append((pygame.Rect(int(x0 + c * (kw + gap) + extra), int(y0 + r * 56), int(kw), 48),
                                      key))
         yb = y0 + n_rows * 56 + 6
-        names = ["desfazer"] + (["forma"] if self.aumentada else [])
+        names = ["desfazer"] + (["forma"] if self.aumentada and self.ver_sistema else [])
         bw = (w - 20 - gap * (len(names) - 1)) / len(names)
         for k, name in enumerate(names):
             self.ui[name] = pygame.Rect(int(10 + k * (bw + gap)), yb, int(bw), 46)
@@ -571,6 +573,30 @@ class Escalonar(Desafio):
 
     def descricao(self):
         return f"escalonar matriz {len(self.inicial)}x{len(self.inicial[0])} até forma {self.objetivo}"
+
+
+class Inversa(Escalonar):
+    """The inverse by row operations (sebenta 5.1): start from [A | I], reach [I | A⁻¹]."""
+
+    ver_sistema = False
+
+    def __init__(self, matriz, **kw):
+        from .. import matrizes as M
+        a = M.matriz(matriz)
+        n = len(a)
+        if any(len(r) != n for r in a) or M.det(a) == 0:
+            raise ValueError("Inversa: a matriz tem de ser quadrada e regular (determinante diferente de 0)")
+        ampliada = [r + [E.frac(int(i == j)) for j in range(n)] for i, r in enumerate(a)]
+        kw.setdefault("recursos", "todos")
+        super().__init__(ampliada, objetivo="reduzida", aumentada=True, n_coef=n, variaveis=[""] * n, **kw)
+
+    def desenhar_alvo(self, surf, ctx):
+        from .nocoes import _partes
+        _partes(surf, [("[A | I]  →  [I | A", theme.VEC), (MINUS + "1", theme.VEC, "sup"), ("]", theme.VEC)],
+                ctx.width / 2, ctx.hud_y + (14 if ctx.width < 600 else 0), 36, ctx.width - 190)
+
+    def descricao(self):
+        return "inversa pelo método [A | I]"
 
 
 def _mini_matriz(surf, m, cx, cy, size, n_coef=None):
