@@ -30,6 +30,9 @@ class Ctx:
         self.time = 0.0
         self.hint_alpha = 1.0       # blinking factor for hints (0..1)
         self.solved = False
+        # set by the player: instant feedback without counting an attempt
+        self.aviso = lambda chave: None   # warning: shake + red flash + clip (falls back to `erro`)
+        self.som = lambda chave: None     # just play a clip if it exists
 
 
 class Desafio:
@@ -42,6 +45,8 @@ class Desafio:
     painel = False
     #: False: no coordinate grid behind the challenge (e.g. number puzzles)
     plano = True
+    #: height in pixels of the bottom panel (when `painel = True`)
+    painel_altura = 210
 
     def __init__(self, *, dica_apos: int = 3, audio: str | None = None):
         self.dica_apos = dica_apos
@@ -97,6 +102,16 @@ class Desafio:
         for h in self.handles:
             released = h.release() or released
         return released and not self.confirmar
+
+    def no_contexto(self, desafios: list, indice: int) -> None:
+        """Called once by the loader with the whole aula (e.g. to introduce things gradually)."""
+
+    def altura_painel(self, w: int) -> int:
+        """Bottom panel height for a screen `w` pixels wide (override to adapt to phones)."""
+        return self.painel_altura
+
+    def tecla(self, ctx: Ctx, ev) -> None:
+        """Keyboard events (KEYDOWN / TEXTINPUT), for challenges where the student types."""
 
     def layout(self, ctx: Ctx) -> None:
         """Screen size changed: place panel widgets."""

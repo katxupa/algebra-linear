@@ -54,7 +54,8 @@ def load_aula(pasta: str, numero: int) -> Aula:
         if bad:
             raise TypeError(f"item de `desafios` não é um desafio: {bad[0]!r}")
         aula.desafios = list(desafios)
-        for d in aula.desafios:   # catch setup errors now, not mid-game
+        for i, d in enumerate(aula.desafios):   # catch setup errors now, not mid-game
+            d.no_contexto(aula.desafios, i)
             d.iniciar()
     except Exception:
         aula.erro = traceback.format_exc(limit=3)

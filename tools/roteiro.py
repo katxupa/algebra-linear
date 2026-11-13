@@ -22,6 +22,8 @@ GERAIS = {
     "intro": "começo da aula",
     "sucesso": "acertou um desafio (grave várias variações curtas!)",
     "erro": "errou (genérico, quando não é um erro conhecido)",
+    "sequencia": "acertou várias seguidas sem errar (a cada 3); se faltar, toca sucesso",
+    "finalmente": "acertou depois de errar 2+ vezes; se faltar, toca sucesso",
     "dica": f"errou várias vezes seguidas: aparece uma dica visual",
     "parado": "ficou 20s sem mexer em nada",
     "fim": "terminou a aula",

@@ -99,6 +99,59 @@ def text(surf, s: str, pos, size: int = 28, color=(230, 232, 240), anchor: str =
     return rect
 
 
+_ARROWS = "→←↔"   # → ← ↔ (missing in the default font: drawn by hand)
+
+
+def text_width(s: str, size: int) -> int:
+    f = font(size)
+    w = 0
+    for part in _split_arrows(s):
+        w += int(size * 0.9) if part in _ARROWS and len(part) == 1 else f.size(part)[0]
+    return w
+
+
+def _split_arrows(s: str):
+    buf = ""
+    for ch in s:
+        if ch in _ARROWS:
+            if buf:
+                yield buf
+            buf = ""
+            yield ch
+        else:
+            buf += ch
+    if buf:
+        yield buf
+
+
+def text_setas(surf, s: str, pos, size: int = 28, color=(230, 232, 240), anchor: str = "center") -> pygame.Rect:
+    """Like text(), but also draws → ← ↔ (row-operation notation)."""
+    w, h = text_width(s, size), font(size).get_height()
+    rect = pygame.Rect(0, 0, w, h)
+    setattr(rect, anchor, (int(pos[0]), int(pos[1])))
+    x, cy = rect.x, rect.centery
+    f = font(size)
+    for part in _split_arrows(s):
+        if len(part) == 1 and part in _ARROWS:
+            aw = size * 0.9
+            x0, x1 = x + aw * 0.12, x + aw * 0.88
+            lw = max(2, size // 14)
+            hd = size * 0.22
+            line(surf, color, (x0, cy), (x1, cy), lw)
+            if part in "→↔":
+                line(surf, color, (x1, cy), (x1 - hd, cy - hd), lw)
+                line(surf, color, (x1, cy), (x1 - hd, cy + hd), lw)
+            if part in "←↔":
+                line(surf, color, (x0, cy), (x0 + hd, cy - hd), lw)
+                line(surf, color, (x0, cy), (x0 + hd, cy + hd), lw)
+            x += aw
+        else:
+            img = f.render(part, True, color)
+            surf.blit(img, img.get_rect(midleft=(int(x), cy)))
+            x += img.get_width()
+    return rect
+
+
 def matrix(surf, rows, pos, size: int = 34, color=(230, 232, 240), col_colors=None) -> pygame.Rect:
     """Draw a matrix (any size, e.g. 2x2 or a 2x1 column vector) with brackets, centered at pos.
     col_colors colors each column."""

@@ -23,8 +23,8 @@ Versão web (abre em http://localhost:8000):
 
 ## Criar uma aula nova
 
-Aulas atuais: **1 Corpo**, **2 Vetores**, **3 Matrizes**. Para criar outra, criar a pasta
-`aulas/aula_4/` com um `lesson.py`:
+Aulas atuais: **1 Corpo**, **2 Vetores**, **3 Matrizes**, **4 Escalonamento**. Para criar outra, criar a pasta
+`aulas/aula_5/` com um `lesson.py`:
 
 ```python
 from engine import *
@@ -52,6 +52,7 @@ jogo continua a funcionar.
 | `Comutativa(a, b)` / `Comutativa(a, b, "·")` | completa `a + b = b + ▢` | `comutatividade` |
 | `Associativa(a, b, c)` | completa `(a + b) + c = a + (b + ▢)` | `associatividade` |
 | `Distributiva(a, b, c)` | completa `a · (b + c) = a · b + ▢` | `distributividade` |
+| `Escalonar(matriz, objetivo="escalonada" ou "reduzida")` | monta cada operação elementar numa calculadora (`L3` `→` `L3` `−` `2` `L1` `=`) ou escrevendo no teclado; nada é sugerido; termina com ✓. Opções: `forma="sistema"`, `aumentada=False`, `colunas=True` (operações de coluna: `C1 ↔ C2`, `C2 → C2 − 3C1`, `C1 → 2C1`; num sistema só a troca) | `nao_escalonada`, `nao_reduzida`, `multiplicar_por_zero`, `mesma_linha`, `comando`, `coluna_sistema` |
 | `MoverVetor(para=(x, y))` | arrasta a ponta do vetor até às coordenadas | `trocou_xy`, `sinal`, `quase` |
 | `SomarVetores(v, w)` | encosta o início de w na ponta de v | `ao_contrario`, `quase` |
 | `Escalar(v, por=k)` | arrasta um vetor até k·v | `sinal`, `paralelo`, `quase` |
@@ -72,6 +73,16 @@ Ficheiros `.ogg` com o nome da situação:
 Situações: `intro`, `sucesso`, `erro`, `dica`, `parado`, `fim` e os erros da tabela acima.
 Várias versões da mesma situação (`sucesso_1.ogg`, `sucesso_2.ogg`...) são tocadas à sorte.
 Se faltar o áudio de um erro específico, toca `erro`.
+
+O narrador **não fala em todas as respostas** (cansava). O feedback visual aparece sempre, mas a voz segue
+regras em `engine/narrador.py`, com os números todos no topo do ficheiro para afinar:
+- `intro`, `fim` e `dica` tocam sempre;
+- erros específicos (`trocou_xy`, `dividir_por_zero`, ...) tocam, mas o mesmo não se repete antes de 25 s;
+- a cada 3 acertos seguidos toca `sequencia`; num acerto depois de 2+ erros toca `finalmente`
+  (sem essas gravações, toca `sucesso`);
+- `sucesso` e `erro` genéricos: sempre na primeira vez; fora disso só às vezes (30%) e com 15 s de intervalo;
+- `operacao` (escalonamento) é raro (12%);
+- nunca fala por cima de outra fala nem antes de 4 s de silêncio.
 
 ```bash
 .venv\Scripts\python tools/roteiro.py aula_1             # lista o que gravar -> aulas/aula_1/audio/ROTEIRO.md

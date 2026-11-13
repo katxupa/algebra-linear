@@ -6,6 +6,7 @@ import pygame
 from .. import theme
 from ..challenges.base import Ctx, SUCESSO, ERRO
 from ..coords import Camera
+from ..narrador import Narrador
 from ..scene import draw
 from ..scene.anim import Shake, Effect, Blink, Tween
 from ..scene.plane import draw_plane
@@ -32,8 +33,11 @@ class LessonPlayer:
         self.cam = Camera(app.width, app.height)
         self.ctx = Ctx(self.cam, app.width, app.height, HUD_H / 2, 0)
         self.finished = False
+        self.narrador = Narrador(self.audio)      # decides when the voice speaks (engine/narrador.py)
+        self.ctx.aviso = self._aviso
+        self.ctx.som = lambda chave: self.narrador.falar(chave)
         self.idx = -1
-        self.audio.play("intro")
+        self.narrador.falar("intro")
         self._next()
 
     # ---- flow ---------------------------------------------------------------------
@@ -43,7 +47,7 @@ class LessonPlayer:
             self.finished = True
             self.end_tween = Tween(0.8)
             self.app.mark_done(self.aula)
-            self.audio.play("fim")
+            self.narrador.falar("fim")
             return
         self.d = self.aula.desafios[self.idx]
         self.d.iniciar()
@@ -57,7 +61,7 @@ class LessonPlayer:
         self.enter = Tween(0.5)
         self.resize(self.app.width, self.app.height)
         if self.d.audio:
-            self.audio.play(self.d.audio, interrupt=False)
+            self.narrador.falar(self.d.audio, forcar=True, interromper=False)
         self.audio.preparar(self._chaves_provaveis())
 
     def _chaves_provaveis(self) -> list[str]:
@@ -76,6 +80,12 @@ class LessonPlayer:
         busy_fx = self.flash_ok.active or self.flash_bad.active or self.shake.active
         return not busy_fx and not pygame.mouse.get_pressed()[0]
 
+    def _aviso(self, chave: str) -> None:
+        """Instant feedback for an invalid action (not an attempt: no hint counter)."""
+        self.shake.start()
+        self.flash_bad.start()
+        self.narrador.erro(chave)
+
     def _attempt(self) -> None:
         state = self.d.estado()
         if state == self.last_state:
@@ -88,28 +98,27 @@ class LessonPlayer:
             self.flash_ok.start()
             for h in self.d.handles:
                 h.enabled = False
-            self.audio.play(SUCESSO)
+            self.narrador.acerto(self.fails)
             return
         self.fails += 1
         self.shake.start()
         self.flash_bad.start()
         if self.fails >= self.d.dica_apos and not self.hint:
             self.hint = True
-            if self.audio.play("dica"):
+            if self.narrador.falar("dica"):
                 return
-        if not self.audio.play(result):
-            self.audio.play(ERRO)
+        self.narrador.erro(result)
 
     # ---- scene interface ----------------------------------------------------------
     def resize(self, w: int, h: int) -> None:
-        bottom = PANEL_H if (not self.finished and self.d.painel) else 0
+        bottom = self.d.altura_painel(w) if (not self.finished and self.d.painel) else 0
         self.cam.top_margin, self.cam.bottom_margin = HUD_H, bottom
         self.cam.resize(w, h)
         self.ctx.width, self.ctx.height = w, h
         self.ctx.hud_y = HUD_H / 2 + 6
-        self.ctx.bottom_y = h - PANEL_H / 2
+        self.ctx.bottom_y = h - (self.d.altura_painel(w) if not self.finished else PANEL_H) / 2
         self.back.place(40, 40)
-        self.ok.place(w - 60, h - 60 - (PANEL_H if bottom else 0))
+        self.ok.place(w - 60, h - 60 - bottom)
         if not self.finished:
             self.d.layout(self.ctx)
 
@@ -136,6 +145,9 @@ class LessonPlayer:
             if ev.buttons[0]:
                 self.idle = 0.0
                 self.d.move(self.ctx, *ev.pos)
+        elif ev.type in (pygame.KEYDOWN, pygame.TEXTINPUT) and not self.finished and self.solved_at is None:
+            self.idle = 0.0
+            self.d.tecla(self.ctx, ev)
         elif ev.type == pygame.MOUSEBUTTONUP and ev.button == 1 and not self.finished:
             if self.solved_at is None and self.d.release(self.ctx):
                 self._attempt()
@@ -147,6 +159,7 @@ class LessonPlayer:
             fx.update(dt)
         self.ok.update(dt)
         self.ctx.hint_alpha = self.blink.alpha
+        self.narrador.tick(dt)
         if self._calmo():
             self.audio.carregar_um()      # preload one upcoming clip per calm frame
         if self.finished:
@@ -164,7 +177,7 @@ class LessonPlayer:
         self.idle += dt
         if self.idle >= IDLE_AFTER and not self.idle_played:
             self.idle_played = True
-            self.audio.play("parado")
+            self.narrador.falar("parado", forcar=True)
 
     def draw(self, surf) -> None:
         surf.fill(theme.BG)
@@ -188,7 +201,8 @@ class LessonPlayer:
         self.d.desenhar_alvo(surf, self.ctx)
         self._draw_progress(surf, w)
         if self.d.painel:
-            pygame.draw.rect(surf, theme.PANEL, (0, h - PANEL_H, w, PANEL_H))
+            ph = self.d.altura_painel(w)
+            pygame.draw.rect(surf, theme.PANEL, (0, h - ph, w, ph))
             self.d.desenhar_painel(surf, self.ctx)
         self.back.draw(surf)
         self.ok.visible = self.d.confirmar and self.solved_at is None

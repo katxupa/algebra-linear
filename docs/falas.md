@@ -24,6 +24,26 @@
 | `sucesso_5` | "Isso! Vou contar à tua mãe." |
 | `sucesso_6` | "Até o Euclides bateu palmas. Não sei quem é, mas bateu." |
 
+### `sequencia` (vários acertos seguidos, sem errar; toca a cada 3)
+| Ficheiro | Fala |
+|---|---|
+| `sequencia_1` | "Acho que já sabes mais de matemática do que o professor de matemática." |
+| `sequencia_2` | "Calma aí! Estás a acertar tudo… andaste a estudar sem me avisar?" |
+| `sequencia_3` | "Três seguidas?! Vou começar a copiar por ti no teste." |
+| `sequencia_4` | 🎭 "Excelente! Quer dar a aula de amanhã no meu lugar?" |
+| `sequencia_5` | "Para! Assim o professor vai pensar que a turma estudou." |
+| `sequencia_6` | "Se continuas assim, ainda te dão uma estátua no Plateau." |
+| `sequencia_7` | "Tu não és estudante, és uma calculadora com sapatos." |
+| `sequencia_8` | "Eu aqui a sofrer e tu a passear pelos exercícios. Não é justo!" |
+
+### `finalmente` (acertou depois de errar várias vezes)
+| Ficheiro | Fala |
+|---|---|
+| `finalmente_1` | "Até que enfim! Já estava a ficar com fome." |
+| `finalmente_2` | "Ufa! À quarta foi de vez. Ou à quinta, já perdi a conta." |
+| `finalmente_3` | 🎭 "Persistência, meus senhores! Errar é humano, acertar é… finalmente." |
+| `finalmente_4` | "Conseguiste! Eu sempre acreditei em ti. Mais ou menos." |
+
 ### `erro`
 | Ficheiro | Fala |
 |---|---|
@@ -148,3 +168,31 @@
 | `simetrica_1` | não é simétrica | "Simétrica é um espelho na diagonal. O 3 de cima tem de ver o 3 de baixo." |
 | `traco_1` | somou a matriz toda | "O traço é só a diagonal principal. Não somes tudo, que é trabalho à toa." |
 | `identidade_1` | mexeu na identidade | "A identidade não muda nada. Tipo nós na biblioteca: estamos lá, mas não mexemos em nada." |
+
+---
+
+## Aula 4: Escalonamento (`aulas/aula_4/audio/`)
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "Escalonar é arrumar a matriz em escada. Tipo arrumar o quarto… mas com regras." |
+| `intro_2` | 🎭 "Três operações elementares, meus senhores." E tu: "Só três? Isto até eu decoro." |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `nao_escalonada_1` | carregou em ✓ sem estar em escada | "Isso ainda não é escada, é rampa! Os pivôs têm de ir descendo para a direita." |
+| `nao_escalonada_2` | | "Calma! Ainda há números debaixo dos pivôs a pedir para ir embora." |
+| `nao_reduzida_1` | escalonada mas não reduzida | "Escada feita! Mas o exercício quer reduzida: pivôs a 1 e zeros por cima também." |
+| `multiplicar_por_zero_1` | tentou multiplicar uma linha por 0 | "Multiplicar por zero?! Apagaste a equação inteira. Isso não é escalonar, é fazer batota." |
+| `mesma_linha_1` | trocou/somou uma linha com ela própria | "Trocar a linha com ela própria… muito trabalho para ficar igual." |
+| `comando_1` | montou uma operação que não é elementar ou está incompleta | "Isso não é uma operação elementar! Tipo: L2 seta L2 menos 3 L1." |
+| `coluna_sistema_1` | num sistema, tentou multiplicar/somar colunas | "Num sistema só se trocam colunas! Somar colunas muda as respostas todas." |
+| `novidade_1` (opcional) | apareceu uma tecla nova | "Olha, tecla nova! Experimenta." |
+| `operacao_1` (opcional) | cada operação válida | "Feito." · "Hmm, ok." · "Bora!" (bem curtinhas) |
+
+### `dica`
+| Ficheiro | Fala |
+|---|---|
+| `dica_1` | "Olha a cábula aí em cima, já te diz a próxima operação." |

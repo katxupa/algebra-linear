@@ -8,7 +8,9 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 |---|---|---|
 | `intro` | começo da aula | ✅ 3 na aula |
 | `sucesso` | acertou um desafio (grave várias variações curtas!) | ☑️ 6 compartilhado(s) |
-| `erro` | errou (genérico, quando não é um erro conhecido) | ⬜ falta |
+| `erro` | errou (genérico, quando não é um erro conhecido) | ☑️ 1 compartilhado(s) |
+| `sequencia` | acertou várias seguidas sem errar (a cada 3); se faltar, toca sucesso | ⬜ falta |
+| `finalmente` | acertou depois de errar 2+ vezes; se faltar, toca sucesso | ⬜ falta |
 | `dica` | errou várias vezes seguidas: aparece uma dica visual | ⬜ falta |
 | `parado` | ficou 20s sem mexer em nada | ⬜ falta |
 | `fim` | terminou a aula | ⬜ falta |
