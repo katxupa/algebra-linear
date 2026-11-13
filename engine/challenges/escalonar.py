@@ -462,12 +462,13 @@ class Escalonar(Desafio):
         size = max(20, min(46, int((bottom - top) / (rows * 1.8 + 1))))
         lines = [self._equacao(r) for r in range(rows)]
         widest = max(draw.text_width(s, size) for s in lines)
-        if widest > ctx.width - 140:
-            size = max(16, int(size * (ctx.width - 140) / widest))
+        livre = ctx.width - (size * 2.4 + 24)      # the row labels (L1, L2...) need room on the left
+        if widest > livre:
+            size = max(16, int(size * livre / widest))
             widest = max(draw.text_width(s, size) for s in lines)
         row_h = size * 1.8
         y0 = (top + bottom) / 2 - rows * row_h / 2
-        x0 = ctx.width / 2 - widest / 2
+        x0 = max(size * 2.4, ctx.width / 2 - widest / 2)
         hl, left = self.realce
         fade = left / 0.8 if left else 0
         self.rows_ui, self.cols_ui = [], []

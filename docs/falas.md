@@ -102,7 +102,38 @@
 
 ---
 
-## Aula 2: Vetores (`aulas/aula_2/audio/`)
+## Aula 2: Matrizes (`aulas/aula_2/audio/`)
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "Matrizes. Uma tabela de números arrumadinha… ao contrário da minha mochila." |
+| `intro_2` | 🎭 "Primeiro o índice da linha, depois o da coluna." E tu: "Linha deita, coluna fica de pé. Decora isso e já passas." |
+
+### Erros do tema
+| Ficheiro | Quando | Fala |
+|---|---|---|
+| `trocou_ij_1` | tocou em a₂₁ em vez de a₁₂ | "Ao contrário! Primeiro a linha, depois a coluna. Como no cinema: fila, depois cadeira." |
+| `so_linha_1` | linha certa, coluna errada | "A linha está certa! Agora anda para o lado até à coluna." |
+| `so_coluna_1` | coluna certa, linha errada | "A coluna está certa! Agora sobe ou desce até à linha." |
+| `trocou_mn_1` | disse 2 × 3 em vez de 3 × 2 | "Trocaste! Primeiro contam-se as linhas, só depois as colunas." |
+| `linha_coluna_1` | confundiu matriz linha com matriz coluna | "Linha é deitada, coluna é em pé. Tipo eu no sofá e eu na fila da cantina." |
+| `diagonal_errada_1` | usou a diagonal secundária | "Essa é a outra diagonal! A principal começa lá em cima, à esquerda." |
+| `somou_tudo_1` | no traço, somou a matriz toda | "Calma, guloso! O traço é só a diagonal principal, não é a matriz inteira." |
+| `incompleto_1` | está certo, mas falta | "Até aí está certo… mas falta. Não pares a meio, isso faço eu." |
+| `triangulo_trocado_1` | zeros do lado errado da diagonal | "Zeros do lado errado! Superior quer dizer: os números ficam em cima, os zeros em baixo." |
+| `diagonal_apagada_1` | pôs zeros na diagonal | "Na diagonal não se mexe! Ela é a dona da casa." |
+| `parenteses_trocados_1` | confundiu A[ ] com A( ) | "Trocaste os parênteses! Os retos dizem o que fica, os curvos dizem o que sai." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Já sabes onde mora cada número. Agora ninguém te engana com o a-três-dois." |
+| `fim_2` | 🎭 "Muito bem, já conhecem as matrizes." E tu: "Ele está contente. Aproveita, que é raro." |
+
+---
+
+## Aula 9: Extra: Vetores (`aulas/aula_9/audio/`)
 
 ### `intro`
 | Ficheiro | Fala |
@@ -131,7 +162,7 @@
 
 ---
 
-## Aula 3: Matrizes (`aulas/aula_3/audio/`)
+## Aula 10: Extra: Matrizes no Plano (`aulas/aula_10/audio/`)
 
 ### `intro`
 | Ficheiro | Fala |
@@ -206,3 +237,22 @@
 | Ficheiro | Fala |
 |---|---|
 | `dica_1` | "Olha a cábula aí em cima, já te diz a próxima operação." |
+
+---
+
+## Aula 5: Sistemas (`aulas/aula_5/audio/`)
+
+Usa as mesmas situações da Aula 4 (`nao_reduzida`, `multiplicar_por_zero`, `mesma_linha`, `comando`, `dica`).
+
+### `intro`
+| Ficheiro | Fala |
+|---|---|
+| `intro_1` | "Sistemas de equações. Várias contas ao mesmo tempo… como as minhas dívidas na cantina." |
+| `intro_2` | 🎭 "Resolver um sistema é levar a matriz ampliada à forma escalonada reduzida." E tu: "Ou seja: arruma até cada letra ficar sozinha." |
+
+### `fim`
+| Ficheiro | Fala |
+|---|---|
+| `fim_1` | "Sistema resolvido! Já podes dividir a conta do jantar sem discussões." |
+| `fim_2` | 🎭 "O conjunto-solução está correto." E tu: "Ele quis dizer: boa!" |
+

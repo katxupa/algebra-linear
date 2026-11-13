@@ -1,4 +1,4 @@
-# Roteiro de áudio: aula_2 (Vetores)
+# Roteiro de áudio: aula_2 (Matrizes)
 
 Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `chave_2.ogg`...
 
@@ -19,32 +19,35 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 
 | chave | quando toca | desafios | status |
 |---|---|---|---|
-| `trocou_xy` | trocou x e y (ex: colocou em (2,3) em vez de (3,2)) | 1, 2, 3, 4 | ⬜ falta |
-| `sinal` | acertou os números mas errou o sinal (+/−) | 1, 2, 3, 4, 11, 12 | ⬜ falta |
-| `quase` | ficou a 1 casinha do lugar certo | 1, 2, 3, 4, 5, 6, 11, 12 | ⬜ falta |
-| `ao_contrario` | encostou a PONTA de w na ponta de v (em vez do início de w) | 5, 6 | ⬜ falta |
-| `caiu` | a soma das forças aponta para baixo: o boneco cai à água | 7, 8, 9, 10 | ⬜ falta |
-| `voou` | a soma das forças aponta para cima: o boneco sai disparado para o céu | 7, 8, 9, 10 | ⬜ falta |
-| `de_lado` | para cima e para baixo está certo, mas sobra força para um lado | 7, 8, 9, 10 | ⬜ falta |
-| `paralelo` | na direção certa, mas tamanho errado | 11, 12 | ⬜ falta |
-
-## Início de desafio (`audio=`)
-
-| chave | desafio | status |
-|---|---|---|
-| `cena_cordas` | 7 | ⬜ falta |
+| `trocou_ij` | trocou a linha com a coluna (tocou em a_ji em vez de a_ij) | 1, 2, 3 | ⬜ falta |
+| `so_linha` | acertou na linha, errou na coluna | 1, 2, 3, 17, 18 | ⬜ falta |
+| `so_coluna` | acertou na coluna, errou na linha | 1, 2, 3, 17, 18 | ⬜ falta |
+| `trocou_mn` | trocou linhas com colunas (disse n × m em vez de m × n) | 4, 5 | ⬜ falta |
+| `linha_coluna` | confundiu matriz linha com matriz coluna | 6, 7, 8, 9 | ⬜ falta |
+| `diagonal_errada` | marcou a outra diagonal (a secundária) | 10, 11, 15, 16 | ⬜ falta |
+| `incompleto` | o que marcou está certo, mas falta marcar entradas | 10, 12, 13, 14 | ⬜ falta |
+| `somou_tudo` | somou todas as entradas da matriz | 11 | ⬜ falta |
+| `triangulo_trocado` | pôs os zeros do lado errado da diagonal (superior ↔ inferior) | 12, 13, 14, 15, 16 | ⬜ falta |
+| `diagonal_apagada` | pôs zeros também na diagonal principal | 12, 13, 14 | ⬜ falta |
+| `parenteses_trocados` | fez o contrário: ficou com o que era para tirar (confundiu [ ] com ( )) | 17, 18 | ⬜ falta |
 
 ## Desafios
 
-1. mover vetor até (3, 2)
-2. mover vetor até (2, 3)
-3. mover vetor até (-3, 1)
-4. mover vetor até (-2, -4)
-5. somar v=(2, 1) + w=(1, 2)
-6. somar v=(-1, 3) + w=(3, -1)
-7. segurar o boneco: falta a força (0, 3)
-8. segurar o boneco: falta a força (2, 2)
-9. segurar o boneco: falta a força (3, 2)
-10. segurar o boneco: falta a força (-2, 2)
-11. escalar 2·(1, 2)
-12. escalar -1·(2, 1)
+1. tocar na entrada a12
+2. tocar na entrada a31
+3. tocar na entrada a24
+4. tipo da matriz: 3 × 2
+5. tipo da matriz: 1 × 4
+6. matriz linha
+7. matriz coluna
+8. matriz quadrada
+9. matriz retangular
+10. marcar a diagonal principal
+11. traço = 11
+12. pôr zeros até a matriz ser triangular superior
+13. pôr zeros até a matriz ser triangular inferior
+14. pôr zeros até a matriz ser diagonal
+15. qual é a matriz escalar?
+16. qual é a matriz identidade?
+17. submatriz A[1,3 | 2,3,4]
+18. submatriz A(2,4 | 1)

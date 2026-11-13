@@ -217,12 +217,12 @@ class LessonPlayer:
     # ---- drawing helpers ----------------------------------------------------------
     def _draw_progress(self, surf, w) -> None:
         n = len(self.aula.desafios)
-        gap = 22
+        gap = max(8, min(22, (w - 130) / max(1, n - 1)))
         x0 = w - 30 - (n - 1) * gap
         for k in range(n):
             color = theme.OK if k < self.idx or (k == self.idx and self.ctx.solved) else (
                 theme.TEXT if k == self.idx else theme.TEXT_DIM)
-            draw.circle(surf, color, (x0 + k * gap, 30), 6 if k == self.idx else 4)
+            draw.circle(surf, color, (x0 + k * gap, 30), (6 if k == self.idx else 4) if gap >= 14 else (4 if k == self.idx else 3))
 
     def _draw_flash(self, surf, w, h) -> None:
         for fx, name in ((self.flash_bad, "bad"), (self.flash_ok, "ok")):

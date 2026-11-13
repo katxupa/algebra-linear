@@ -33,7 +33,7 @@ class App:
         self.start_audio()
         self.open_menu()
         if start_aula is not None:
-            match = [a for a in self.aulas if a.numero == start_aula and not a.erro]
+            match = [a for a in self.aulas if a.numero == start_aula and not a.erro and not a.em_breve]
             if match:
                 self.open_aula(match[0])
 

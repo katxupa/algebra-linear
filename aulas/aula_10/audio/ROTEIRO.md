@@ -1,4 +1,4 @@
-# Roteiro de áudio: aula_3 (Matrizes)
+# Roteiro de áudio: aula_10 (Extra: Matrizes no Plano)
 
 Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `chave_2.ogg`...
 
@@ -8,7 +8,7 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 |---|---|---|
 | `intro` | começo da aula | ⬜ falta |
 | `sucesso` | acertou um desafio (grave várias variações curtas!) | ☑️ 6 compartilhado(s) |
-| `erro` | errou (genérico, quando não é um erro conhecido) | ☑️ 1 compartilhado(s) |
+| `erro` | errou (genérico, quando não é um erro conhecido) | ☑️ 3 compartilhado(s) |
 | `sequencia` | acertou várias seguidas sem errar (a cada 3); se faltar, toca sucesso | ⬜ falta |
 | `finalmente` | acertou depois de errar 2+ vezes; se faltar, toca sucesso | ⬜ falta |
 | `dica` | errou várias vezes seguidas: aparece uma dica visual | ⬜ falta |

@@ -1,18 +1,40 @@
 from engine import *
 
-titulo = "Vetores"
+titulo = "Matrizes"
+
+# Sebenta, cap. 2.1 e 2.2. As matrizes A, B e C são as dos exemplos 2.1 e 2.2.
+A = [[3, 2],
+     [-1, 4],
+     [2, 0]]
+B = [[1, 1, 1, 1],                 # b_ij = i^(j−1)
+     [1, 2, 4, 8],
+     [1, 3, 9, 27],
+     [1, 4, 16, 64]]
+C = [[1, 2, 3, 4],
+     [4, 3, 2, 1],
+     [-1, -2, -3, -4],
+     [-4, -3, -2, -1]]
+E = [[2, 5, 1],
+     [7, 3, 4],
+     [8, 9, 6]]
 
 desafios = [
-    MoverVetor(para=(3, 2), mostrar_alvo=True),
-    MoverVetor(para=(2, 3)),
-    MoverVetor(para=(-3, 1)),
-    MoverVetor(para=(-2, -4)),
-    SomarVetores((2, 1), (1, 2)),
-    SomarVetores((-1, 3), (3, -1)),
-    Segurar(peso=3),                                  # uma corda: o contrário do peso
-    Segurar(peso=4, cordas=[(-2, 2)]),                # a outra corda já puxa
-    Segurar(peso=3, cordas=[(-3, 1)]),
-    Segurar(peso=4, cordas=[(-1, 2)], vento=(3, 0)),  # e ainda há vento
-    Escalar((1, 2), por=2),
-    Escalar((2, 1), por=-1),
+    Entrada(A, 1, 2),                          # entradas: primeiro a linha, depois a coluna
+    Entrada(A, 3, 1),
+    Entrada(B, 2, 4),
+    Tipo(A),                                   # tipo m × n
+    Tipo([[1, -3, 5, 3]]),
+    Forma([[1, -3, 5, 3]]),                    # matriz linha, coluna, quadrada, retangular
+    Forma([[4], [-2], [2]]),
+    Forma(E),
+    Forma(A),
+    Diagonal(E),                               # diagonal principal e traço
+    Traco(E),
+    Zerar(E, "triangular superior"),           # tipos de matrizes quadradas
+    Zerar(E, "triangular inferior"),
+    Zerar(E, "diagonal"),
+    Qual("escalar"),
+    Qual("identidade"),
+    Submatriz(C, ficar=([1, 3], [2, 3, 4])),   # A[1,3 | 2,3,4]
+    Submatriz(C, tirar=([2, 4], [1])),         # A(2,4 | 1): a mesma submatriz
 ]

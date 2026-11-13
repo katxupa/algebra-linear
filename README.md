@@ -26,8 +26,24 @@ Versão web (abre em http://localhost:8000):
 
 ## Criar uma aula nova
 
-Aulas atuais: **1 Corpo**, **2 Vetores**, **3 Matrizes**, **4 Escalonamento**. Para criar outra, criar a pasta
-`aulas/aula_5/` com um `lesson.py`:
+As aulas seguem a ordem da sebenta de ALGA I:
+
+| N.º | Aula | Estado |
+|---|---|---|
+| 1 | Corpo | feita |
+| 2 | Matrizes | feita |
+| 3 | Operações com Matrizes | em breve |
+| 4 | Escalonamento | feita |
+| 5 | Sistemas | feita (falta classificar sistemas) |
+| 6 | Matriz Inversa | em breve |
+| 7 | Determinantes | em breve |
+| 8 | Cramer e Adjunta | em breve |
+| 9 | Extra: Vetores | feita (fora da sebenta) |
+| 10 | Extra: Matrizes no Plano | feita (fora da sebenta) |
+
+Uma aula com `desafios = []` aparece no menu como "em breve" e não abre.
+
+Para criar outra, criar a pasta `aulas/aula_11/` com um `lesson.py`:
 
 ```python
 from engine import *
@@ -57,6 +73,14 @@ jogo continua a funcionar.
 | `Comutativa(a, b)` / `Comutativa(a, b, "·")` | completa `a + b = b + ▢` | `comutatividade` |
 | `Associativa(a, b, c)` | completa `(a + b) + c = a + (b + ▢)` | `associatividade` |
 | `Distributiva(a, b, c)` | completa `a · (b + c) = a · b + ▢` | `distributividade` |
+| `Entrada(A, i, j)` | toca na entrada a<sub>ij</sub> da matriz | `trocou_ij`, `so_linha`, `so_coluna` |
+| `Tipo(A)` | escolhe o tipo m × n | `trocou_mn` |
+| `Forma(A)` | escolhe: matriz linha, coluna, quadrada ou retangular | `linha_coluna` |
+| `Diagonal(A)` | marca as entradas da diagonal principal (✓) | `diagonal_errada`, `incompleto` |
+| `Traco(A)` | escolhe o valor de tr(A) | `diagonal_errada`, `somou_tudo` |
+| `Zerar(A, "triangular superior")` | toca nas entradas que têm de passar a 0 (também `"triangular inferior"` e `"diagonal"`) (✓) | `triangulo_trocado`, `diagonal_apagada`, `incompleto` |
+| `Qual("identidade")` | toca na matriz certa entre quatro (também `"escalar"`, `"diagonal"`, `"nula"`, `"triangular superior"`, `"triangular inferior"`) | `triangulo_trocado`, `diagonal_errada` |
+| `Submatriz(A, ficar=(linhas, colunas))` ou `tirar=(...)` | risca linhas e colunas até sobrar A[linhas \| colunas] ou A(linhas \| colunas) (✓) | `parenteses_trocados`, `so_linha`, `so_coluna` |
 | `Escalonar(matriz, objetivo="escalonada" ou "reduzida")` | monta cada operação elementar numa calculadora (`L3` `→` `L3` `−` `2` `L1` `=`) ou escrevendo no teclado; nada é sugerido; termina com ✓. Opções: `forma="sistema"`, `aumentada=False`, `colunas=True` (operações de coluna: `C1 ↔ C2`, `C2 → C2 − 3C1`, `C1 → 2C1`; num sistema só a troca) | `nao_escalonada`, `nao_reduzida`, `multiplicar_por_zero`, `mesma_linha`, `comando`, `coluna_sistema` |
 | `MoverVetor(para=(x, y))` | arrasta a ponta do vetor até às coordenadas | `trocou_xy`, `sinal`, `quase` |
 | `SomarVetores(v, w)` | encosta o início de w na ponta de v | `ao_contrario`, `quase` |

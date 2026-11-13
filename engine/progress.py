@@ -5,8 +5,8 @@ import json
 import os
 import sys
 
-_KEY = "algebra_linear_progress"
-_FILE = os.path.join(os.path.expanduser("~"), ".algebra_linear", "progress.json")
+_KEY = "algebra_linear_progress_v2"   # v2: lessons renumbered to follow the handout
+_FILE = os.path.join(os.path.expanduser("~"), ".algebra_linear", "progress_v2.json")
 WEB = sys.platform == "emscripten"
 
 

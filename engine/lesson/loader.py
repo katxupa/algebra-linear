@@ -5,6 +5,7 @@ A lesson file only needs:
     titulo = "..."
     desafios = [ ... ]
 Errors in a lesson never crash the game: the Aula is marked broken and shown in the menu.
+An empty list (`desafios = []`) is a planned lesson: the menu shows it as "em breve".
 """
 from __future__ import annotations
 
@@ -29,6 +30,7 @@ class Aula:
     titulo: str = ""
     desafios: list[Desafio] = field(default_factory=list)
     erro: str | None = None
+    em_breve: bool = False      # planned lesson (`desafios = []`): in the menu, not playable yet
 
     @property
     def id(self) -> str:
@@ -48,8 +50,11 @@ def load_aula(pasta: str, numero: int) -> Aula:
         spec.loader.exec_module(mod)
         aula.titulo = str(getattr(mod, "titulo", aula.titulo))
         desafios = getattr(mod, "desafios", None)
-        if not isinstance(desafios, (list, tuple)) or not desafios:
-            raise ValueError("lesson.py precisa de uma lista `desafios = [...]` não vazia")
+        if not isinstance(desafios, (list, tuple)):
+            raise ValueError("lesson.py precisa de uma lista `desafios = [...]`")
+        if not desafios:
+            aula.em_breve = True
+            return aula
         bad = [d for d in desafios if not isinstance(d, Desafio)]
         if bad:
             raise TypeError(f"item de `desafios` não é um desafio: {bad[0]!r}")

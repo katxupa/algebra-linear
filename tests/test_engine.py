@@ -457,3 +457,105 @@ def test_segurar_with_wind_and_first_scene_gets_the_intro_clip():
         d.no_contexto(aula, i)
     assert a.audio == "cena_cordas" and b.audio is None
 
+
+
+# ---- matrix notions (aula 2) --------------------------------------------------------------
+
+from engine import Entrada, Tipo, Forma, Diagonal, Traco, Zerar, Qual, Submatriz
+
+M32 = [[3, 2], [-1, 4], [2, 0]]
+M33 = [[2, 5, 1], [7, 3, 4], [8, 9, 6]]
+
+
+def test_entrada_row_first_then_column():
+    d = Entrada(M32, 1, 2)
+    d.iniciar()
+    for cel, esperado in [((0, 1), "sucesso"), ((1, 0), "trocou_ij"), ((0, 0), "so_linha"),
+                          ((2, 1), "so_coluna"), ((2, 0), "erro")]:
+        d.sel = cel
+        assert d.avaliar() == esperado
+    with pytest.raises(ValueError):
+        Entrada(M32, 2, 3)                        # there is no column 3
+
+
+def test_tipo_and_forma():
+    d = Tipo(M32)
+    d.iniciar()
+    assert d.resposta == (3, 2) and (3, 2) in d.opcoes and (2, 3) in d.opcoes and len(d.opcoes) == 4
+    d.sel = (2, 3)
+    assert d.avaliar() == "trocou_mn"
+    d.sel = (3, 2)
+    assert d.avaliar() == "sucesso"
+    for m, nome in [([[1, 2, 3]], "m_linha"), ([[1], [2]], "m_coluna"), (M33, "m_quadrada"), (M32, "m_retangular")]:
+        f = Forma(m)
+        f.iniciar()
+        assert f.resposta == nome and nome in f.opcoes
+    linha = Forma([[1, 2, 3]])
+    linha.iniciar()
+    assert "m_retangular" not in linha.opcoes         # a row matrix is rectangular too: never both
+    linha.sel = "m_coluna"
+    assert linha.avaliar() == "linha_coluna"
+
+
+def test_diagonal_and_trace():
+    d = Diagonal(M33)
+    d.iniciar()
+    d.marc = {(0, 0), (1, 1), (2, 2)}
+    assert d.avaliar() == "sucesso"
+    d.marc = {(0, 2), (1, 1), (2, 0)}
+    assert d.avaliar() == "diagonal_errada"
+    d.marc = {(0, 0), (1, 1)}
+    assert d.avaliar() == "incompleto"
+    tr = Traco(M33)
+    tr.iniciar()
+    assert tr.resposta == 11 and 11 in tr.opcoes
+    tr.sel = 12                                       # 1 + 3 + 8: the other diagonal
+    assert tr.avaliar() == "diagonal_errada"
+    tr.sel = 45
+    assert tr.avaliar() == "somou_tudo"
+    with pytest.raises(ValueError):
+        Traco(M32)
+
+
+def test_zerar_builds_triangular_and_diagonal_matrices():
+    abaixo, acima = {(1, 0), (2, 0), (2, 1)}, {(0, 1), (0, 2), (1, 2)}
+    d = Zerar(M33, "triangular superior")
+    d.iniciar()
+    for marc, esperado in [(abaixo, "sucesso"), (acima, "triangulo_trocado"), (abaixo | {(1, 1)}, "diagonal_apagada"),
+                           ({(1, 0)}, "incompleto"), ({(1, 0), (0, 1)}, "erro")]:
+        d.marc = set(marc)
+        assert d.avaliar() == esperado
+    d = Zerar(M33, "diagonal")
+    d.iniciar()
+    d.marc = abaixo | acima
+    assert d.avaliar() == "sucesso"
+    with pytest.raises(ValueError):
+        Zerar([[1, 2], [0, 3]], "triangular superior")   # already triangular
+
+
+def test_qual_has_exactly_one_right_matrix_for_every_name():
+    from engine.challenges.nocoes import NOMES, e_do_tipo
+    for nome in NOMES:
+        d = Qual(nome)
+        d.iniciar()
+        certas = [k for k, (m, _) in enumerate(d.lista) if e_do_tipo(nome, m)]
+        assert len(certas) == 1
+        d.sel = certas[0]
+        assert d.avaliar() == "sucesso"
+        d.sel = (certas[0] + 1) % len(d.lista)
+        assert d.avaliar() != "sucesso"
+    with pytest.raises(ValueError):
+        Qual("diagonal", opcoes=[[[1, 0], [0, 2]], [[3, 0], [0, 3]]])   # two diagonal matrices
+
+
+def test_submatriz_both_notations_give_the_same_answer():
+    c = [[1, 2, 3, 4], [4, 3, 2, 1], [-1, -2, -3, -4], [-4, -3, -2, -1]]
+    a, b = Submatriz(c, ficar=([1, 3], [2, 3, 4])), Submatriz(c, tirar=([2, 4], [1]))
+    assert (a.fora_l, a.fora_c) == (b.fora_l, b.fora_c) == ({1, 3}, {0})
+    a.iniciar()
+    a.tl, a.tc = {1, 3}, {0}
+    assert a.avaliar() == "sucesso"
+    a.tl, a.tc = {0, 2}, {1, 2, 3}
+    assert a.avaliar() == "parenteses_trocados"
+    a.tl, a.tc = {1, 3}, set()
+    assert a.avaliar() == "so_linha"

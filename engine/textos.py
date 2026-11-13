@@ -17,6 +17,19 @@ TEXTOS = {
         "ver_matriz": "matriz",
         "monta_operacao": "monta a operação, ex:",
         "novo": "novo",
+        "em_breve": "em breve",
+        "matriz": "Matriz",
+        "m_linha": "Linha",
+        "m_coluna": "Coluna",
+        "m_quadrada": "Quadrada",
+        "m_retangular": "Retangular",
+        "diagonal_principal": "Diagonal Principal",
+        "tri_sup": "Triangular Superior",
+        "tri_inf": "Triangular Inferior",
+        "m_diagonal": "Diagonal",
+        "m_escalar": "Escalar",
+        "m_identidade": "Identidade",
+        "m_nula": "Nula",
     },
     "kea": {
         "aula_com_erro": "eru",
@@ -28,6 +41,7 @@ TEXTOS = {
         "ver_matriz": "matris",
         "monta_operacao": "monta operason, ex:",
         "novo": "nobu",
+        "em_breve": "ka ta tarda",
     },
 }
 
