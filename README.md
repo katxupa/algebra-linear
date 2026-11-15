@@ -138,11 +138,9 @@ regras em `engine/narrador.py`, com os números todos no topo do ficheiro para a
 Sem áudio gravado o jogo fica em silêncio (só o feedback visual). Para testar com bips
 provisórios: `tools/sons_teste.py` (apague-os depois). Guião das falas: `docs/falas.md`.
 
-Depois de gravar, corte o silêncio do início e do fim (os originais ficam em `gravacoes_originais/`):
-
-```bash
-.venv\Scripts\python tools/aparar.py
-```
+Os áudios entram **tal como foram gravados**: não se corta o silêncio, porque as gravações vão
+seguir um padrão que é acertado na pós-produção. `tools/aparar.py` fica só para uso manual, se um
+dia for preciso (os originais ficam em `gravacoes_originais/`).
 
 Os áudios vão para o git pelo **Git LFS** (`.gitattributes`), para o repositório não ficar pesado.
 Quem clonar o projeto precisa do Git LFS instalado (vem com o Git para Windows).
@@ -156,7 +154,10 @@ na língua que quiser.
 ## Estrutura
 
 - `engine/`: o motor (desenho, input, áudio, tipos de desafio). Um desafio novo é uma classe em
-  `engine/challenges/` que todas as aulas podem usar.
+  `engine/challenges/` que todas as aulas podem usar:
+  - `base.py`: `Desafio` (arrastar pontas) e `DesafioToque` (tocar: basta escrever `tocar`)
+  - `comum.py`: peças partilhadas pelos desafios de matrizes (`Grade`, `Escolha`, `EscolherMatriz`, peças de resposta)
+  - `engine/escalonamento.py` e `engine/matrizes.py`: as contas exatas (frações), sem desenho
 - `aulas/`: as aulas
-- `tools/`: roteiro de áudio e sons de teste
+- `tools/`: roteiro de áudio, `capturas.py` (uma imagem de cada exercício em `capturas/`) e sons de teste
 - `tests/`: `python -m pytest`

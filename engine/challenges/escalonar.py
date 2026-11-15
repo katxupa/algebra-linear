@@ -21,14 +21,16 @@ from .. import theme
 from .. import escalonamento as E
 from ..scene import draw
 from ..textos import t
-from .base import Desafio, SUCESSO
+from .. import matrizes as M
+from .base import DesafioToque, SUCESSO
+from .comum import texto_partes
 
 ARROW, SWAP, MINUS, DOT = "→", "↔", "−", "·"
 OPERADORES = {ARROW, SWAP, "+", MINUS}          # shown with spaces around them
 BACKSPACE, LIMPAR, APLICAR = "⌫", "AC", "="
 
 
-class Escalonar(Desafio):
+class Escalonar(DesafioToque):
     ERROS = {
         "nao_escalonada": "carregou em ✓ mas a matriz ainda não está em escada",
         "nao_reduzida": "está escalonada, mas não reduzida (pivôs ≠ 1 ou números acima dos pivôs)",
@@ -241,7 +243,7 @@ class Escalonar(Desafio):
             _, self.m, self.nomes = self.hist.pop()
 
     # ---- input --------------------------------------------------------------------------
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         for rect, key in self.keys_ui:
             if rect.collidepoint(sx, sy):
                 self.inserir(key)
@@ -264,12 +266,6 @@ class Escalonar(Desafio):
             if rect.collidepoint(sx, sy):
                 self.inserir(f"C{c + 1}")
                 return True
-        return False
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
         return False
 
     def tecla(self, ctx, ev):
@@ -437,13 +433,13 @@ class Escalonar(Desafio):
             if ("c", c) in hl and fade:
                 band = pygame.Rect(int(xs[c] - col_w[c] / 2 + 4), int(y0 + 2), int(col_w[c] - 8),
                                    int(rows * row_h - 4))
-                pygame.draw.rect(surf, tuple(int(v * 0.35 * fade) for v in theme.OK), band, border_radius=10)
+                pygame.draw.rect(surf, theme.escurecer(theme.OK, 0.35 * fade), band, border_radius=10)
         self.rows_ui = []
         for r in range(rows):
             cy = y0 + r * row_h + row_h / 2
             if ("l", r) in hl and fade:
                 band = pygame.Rect(int(x0 - size * 0.2), int(cy - row_h / 2 + 4), int(total_w), int(row_h - 8))
-                pygame.draw.rect(surf, tuple(int(v * 0.35 * fade) for v in theme.OK), band, border_radius=10)
+                pygame.draw.rect(surf, theme.escurecer(theme.OK, 0.35 * fade), band, border_radius=10)
             for c in range(cols):
                 v = self.m[r][c]
                 color = theme.VEC if piv[r] == c else theme.TEXT_DIM if v == 0 else theme.TEXT
@@ -477,7 +473,7 @@ class Escalonar(Desafio):
         for r, s in enumerate(lines):
             cy = y0 + r * row_h + row_h / 2
             if ("l", r) in hl and fade:
-                pygame.draw.rect(surf, tuple(int(v * 0.35 * fade) for v in theme.OK),
+                pygame.draw.rect(surf, theme.escurecer(theme.OK, 0.35 * fade),
                                  (int(x0 - 10), int(cy - row_h / 2 + 4), int(widest + 20), int(row_h - 8)),
                                  border_radius=10)
             draw.text_setas(surf, s, (x0, cy), size, theme.TEXT, "midleft")
@@ -538,7 +534,7 @@ class Escalonar(Desafio):
             pygame.draw.rect(surf, border, rect, 2, border_radius=10)
             if key in self.teclas_novas:                       # just introduced: glow + tag
                 glow = 0.5 + 0.5 * __import__("math").sin(ctx.time * 5)
-                pygame.draw.rect(surf, tuple(int(v * (0.5 + 0.5 * glow)) for v in theme.OK),
+                pygame.draw.rect(surf, theme.piscar(theme.OK, glow, 0.5),
                                  rect.inflate(6, 6), 3, border_radius=12)
                 draw.text(surf, t("novo"), (rect.centerx, rect.top - 2), 16, theme.OK)
             if key == BACKSPACE:
@@ -567,7 +563,7 @@ class Escalonar(Desafio):
     def desenhar_dica(self, surf, ctx):
         op = E.proximo_passo(self.m, self.objetivo, self.n_coef, self.colunas)
         if op:
-            c = tuple(int(v * (0.35 + 0.65 * ctx.hint_alpha)) for v in theme.VEC2)
+            c = theme.piscar(theme.VEC2, ctx.hint_alpha, 0.35)
             _, bottom = self._area(ctx)
             draw.text_setas(surf, E.texto(op), (ctx.width / 2, bottom + 16), 30, c)
 
@@ -581,7 +577,6 @@ class Inversa(Escalonar):
     ver_sistema = False
 
     def __init__(self, matriz, **kw):
-        from .. import matrizes as M
         a = M.matriz(matriz)
         n = len(a)
         if any(len(r) != n for r in a) or M.det(a) == 0:
@@ -591,8 +586,7 @@ class Inversa(Escalonar):
         super().__init__(ampliada, objetivo="reduzida", aumentada=True, n_coef=n, variaveis=[""] * n, **kw)
 
     def desenhar_alvo(self, surf, ctx):
-        from .nocoes import _partes
-        _partes(surf, [("[A | I]  →  [I | A", theme.VEC), (MINUS + "1", theme.VEC, "sup"), ("]", theme.VEC)],
+        texto_partes(surf, [("[A | I]  →  [I | A", theme.VEC), (MINUS + "1", theme.VEC, "sup"), ("]", theme.VEC)],
                 ctx.width / 2, ctx.hud_y + (14 if ctx.width < 600 else 0), 36, ctx.width - 190)
 
     def descricao(self):

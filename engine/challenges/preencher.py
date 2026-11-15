@@ -8,6 +8,8 @@ The check button marks the wrong entries in red, so the student can try entry by
 """
 from __future__ import annotations
 
+import ast
+import operator
 from fractions import Fraction
 
 import pygame
@@ -16,8 +18,8 @@ from .. import escalonamento as E
 from .. import matrizes as M
 from .. import theme
 from ..scene import draw
-from .base import Desafio, SUCESSO, ERRO
-from .nocoes import Grade, LIN, COL, MARCA, _partes, fmt_num
+from .base import DesafioToque, SUCESSO, ERRO
+from .comum import COL, LIN, MARCA, Grade, fmt_num, texto_partes
 
 MINUS = "−"
 APAGAR = "←"
@@ -32,7 +34,7 @@ def _ler(s: str):
         return None
 
 
-class Preencher(Desafio):
+class Preencher(DesafioToque):
     """Generic: operand matrices on top, the result (with blanks) below, a keypad at the bottom.
     Subclasses give the operands, the right result, the title and the typical wrong results."""
 
@@ -108,7 +110,7 @@ class Preencher(Desafio):
         cels = self.celulas()
         self.sel = cels[(cels.index(self.sel) + passo) % len(cels)]
 
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         for rect, key in self.keys:
             if rect.collidepoint(sx, sy):
                 self.escrever(key)
@@ -117,12 +119,6 @@ class Preencher(Desafio):
         if cel is not None:
             self.sel = cel
             return True
-        return False
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
         return False
 
     def tecla(self, ctx, ev):
@@ -184,7 +180,7 @@ class Preencher(Desafio):
                 elif tipo == "coluna":
                     g.faixa(surf, COL, coluna=idx)
                 else:
-                    pygame.draw.rect(surf, tuple(int(v * 0.4) for v in MARCA), g.rect(*idx).inflate(-6, -6),
+                    pygame.draw.rect(surf, theme.escurecer(MARCA, 0.4), g.rect(*idx).inflate(-6, -6),
                                      border_radius=8)
         for k, ((nome, _), g) in enumerate(zip(self.operandos, self.gs)):
             g.desenhar(surf)
@@ -210,7 +206,7 @@ class Preencher(Desafio):
             draw.text_setas(surf, key, rect.center, 30, theme.TEXT)
 
     def desenhar_alvo(self, surf, ctx):
-        _partes(surf, self.titulo, ctx.width / 2, ctx.hud_y, 46, ctx.width - 170)
+        texto_partes(surf, self.titulo, ctx.width / 2, ctx.hud_y, 46, ctx.width - 170)
 
 
 # ---- 2.3: the algebra of matrices ----------------------------------------------------------------
@@ -307,13 +303,40 @@ class Potencia(Preencher):
         return f"potência A^{self.n}"
 
 
+_OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv,
+        ast.Pow: operator.pow, ast.Mod: operator.mod}
+
+
+def _regra(texto: str):
+    """'i + j', 'i ** (j - 1)', '2*i - j' ... -> function (i, j) -> exact number.
+    Only i, j, whole numbers, + − · / ** % and parentheses are accepted (no Python code)."""
+    try:
+        arvore = ast.parse(texto, mode="eval").body
+    except SyntaxError:
+        raise ValueError(f"Formula: não percebi a regra {texto!r}") from None
+
+    def valor(no, i, j):
+        if isinstance(no, ast.Name) and no.id in ("i", "j"):
+            return Fraction(i if no.id == "i" else j)
+        if isinstance(no, ast.Constant) and isinstance(no.value, int):
+            return Fraction(no.value)
+        if isinstance(no, ast.UnaryOp) and isinstance(no.op, (ast.USub, ast.UAdd)):
+            v = valor(no.operand, i, j)
+            return -v if isinstance(no.op, ast.USub) else v
+        if isinstance(no, ast.BinOp) and type(no.op) in _OPS:
+            return _OPS[type(no.op)](valor(no.left, i, j), valor(no.right, i, j))
+        raise ValueError(f"Formula: na regra {texto!r} só se usam i, j, números e + - * / ** %")
+
+    valor(arvore, 1, 1)                     # check the rule now, when the lesson loads
+    return lambda i, j: valor(arvore, i, j)
+
+
 class Formula(Preencher):
     """A matrix given by a rule on the indices: Formula(3, 3, "i + j"), Formula(3, 3, "i ** (j - 1)")."""
     ERROS = {"trocou_ij": "trocou o i (linha) com o j (coluna) na fórmula", **INCOMPLETO}
 
     def __init__(self, m: int, n: int, regra: str, texto: str | None = None, **kw):
-        def calc(i, j):
-            return eval(regra, {"__builtins__": {}}, {"i": i, "j": j})   # the rule comes from lesson.py
+        calc = _regra(regra)
 
         certo = [[calc(i, j) for j in range(1, n + 1)] for i in range(1, m + 1)]
         self.texto = texto or regra.replace("**", "^").replace("*", "·").replace("-", MINUS)

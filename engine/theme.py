@@ -24,3 +24,13 @@ PANEL_HI = (44, 52, 76)
 HANDLE_RADIUS_PX = 22        # touch-friendly hit area
 VECTOR_WIDTH_PX = 4
 WORLD_RADIUS = 5             # grid units visible from origin to the nearest screen edge
+
+
+def escurecer(cor, k: float) -> tuple:
+    """The colour `cor` with its brightness multiplied by `k` (0 = black, 1 = unchanged)."""
+    return tuple(int(v * k) for v in cor[:3])
+
+
+def piscar(cor, alpha: float, minimo: float = 0.35) -> tuple:
+    """For blinking hints: `alpha` 0..1 goes from `minimo` brightness to the full colour."""
+    return escurecer(cor, minimo + (1 - minimo) * alpha)

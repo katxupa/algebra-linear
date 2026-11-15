@@ -221,3 +221,6 @@ __marimo__/
 
 # Cópias das gravações antes de cortar o silêncio (tools/aparar.py) - ficam só no computador
 gravacoes_originais/
+
+# Capturas de todos os exercícios (tools/capturas.py) - só para ver, não vão para o git
+capturas/

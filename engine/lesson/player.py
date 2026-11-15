@@ -232,7 +232,7 @@ class LessonPlayer:
                 surf.blit(edge, (0, 0))
         if self.flash_ok.active:
             r = 30 + 40 * (1 - self.flash_ok.strength)
-            c = tuple(int(v * self.flash_ok.strength) for v in theme.OK)
+            c = theme.escurecer(theme.OK, self.flash_ok.strength)
             draw.circle(surf, c, (w / 2, h / 2), r, 4)
 
     def _overlay(self, name: str, w: int, h: int) -> pygame.Surface:

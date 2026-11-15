@@ -113,7 +113,7 @@ class EditarMatriz(Desafio):
         # mark where î and ĵ must land, with their coordinates
         cam = ctx.cam
         for v, color in ((self.alvo.i, theme.I_HAT), (self.alvo.j, theme.J_HAT)):
-            c = tuple(int(x * (0.3 + 0.7 * ctx.hint_alpha)) for x in color)
+            c = theme.piscar(color, ctx.hint_alpha, 0.3)
             draw.circle(surf, c, cam.to_screen(v), 10, 3)
             sx, sy = cam.to_screen(v)
             draw.text(surf, v.fmt(), (sx + 14, sy - 14), 24, c, "midleft")

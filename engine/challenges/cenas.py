@@ -167,7 +167,7 @@ class Segurar(Desafio):
             self._forca(surf, cam, f, cor, letra, seta=letra != "P")   # the weight is drawn under the face
         self._forca(surf, cam, self.tip.pos, TUA, "")
         if self.ajuda and not ctx.solved:              # help: the sum of all the forces, live
-            c = tuple(int(v * (0.35 + 0.65 * ctx.hint_alpha)) for v in theme.RESULT)
+            c = theme.piscar(theme.RESULT, ctx.hint_alpha, 0.35)
             draw.dashed_arrow(surf, c, o, cam.to_screen(self.resultante()), 4)
         _coords_label(surf, cam, self.tip.pos, TUA)
         self.tip.draw(surf, cam)
@@ -261,7 +261,7 @@ class Segurar(Desafio):
             return
         desde, x = m
         cx, cy = cam.to_screen((x, AGUA_Y))
-        cor = tuple(int(v * (1 - desde)) for v in ONDA)
+        cor = theme.escurecer(ONDA, 1 - desde)
         for k in range(3):                             # rings on the water
             r = (0.4 + 1.8 * desde + 0.35 * k) * s
             pygame.draw.ellipse(surf, cor, (cx - r, cy - r * 0.18, 2 * r, r * 0.36), 2)
@@ -276,7 +276,7 @@ class Segurar(Desafio):
         if v is None or v.length() < 1e-6:
             return
         u = v * (1 / v.length())
-        cor = tuple(int(c * 0.45) for c in VENTO)
+        cor = theme.escurecer(VENTO, 0.45)
         for k in range(7):                             # streaks drifting with the wind
             ao_longo = (k * 3.7 + self.t * 5) % 14 - 7
             lado = -4.2 + k * 1.35

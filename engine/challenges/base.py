@@ -127,6 +127,29 @@ class Desafio:
         return type(self).__name__
 
 
+class DesafioToque(Desafio):
+    """A challenge played by tapping (tiles, cells, keys), not by dragging handles.
+    Subclasses implement `tocar`. A tap that hit something is an attempt, unless the challenge is
+    answered with the check button (`confirmar = True`)."""
+
+    _tocou = False
+
+    def tocar(self, ctx: Ctx, sx, sy) -> bool:
+        """React to a tap at screen point (sx, sy). Return True if it hit something."""
+        return False
+
+    def press(self, ctx: Ctx, sx, sy) -> bool:
+        self._tocou = self.tocar(ctx, sx, sy)
+        return self._tocou
+
+    def move(self, ctx: Ctx, sx, sy) -> None:
+        pass
+
+    def release(self, ctx: Ctx) -> bool:
+        tocou, self._tocou = self._tocou, False
+        return tocou and not self.confirmar
+
+
 # ---- reusable mistake detectors ----------------------------------------------------------
 
 def erro_vetor(p: Vec2, alvo: Vec2) -> str:
@@ -175,6 +198,6 @@ ERROS_MATRIZ = {
 def ghost_basis(surf, cam, m: Mat2, alpha: float = 1.0) -> None:
     """Dashed î/ĵ showing where the basis should land."""
     o = cam.to_screen((0, 0))
-    fade = lambda c: tuple(int(v * (0.35 + 0.65 * alpha)) for v in c)
+    fade = lambda c: theme.piscar(c, alpha, 0.35)
     draw.dashed_arrow(surf, fade(theme.I_HAT), o, cam.to_screen(m.i), 3)
     draw.dashed_arrow(surf, fade(theme.J_HAT), o, cam.to_screen(m.j), 3)

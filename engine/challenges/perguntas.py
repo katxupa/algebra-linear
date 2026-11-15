@@ -20,8 +20,7 @@ from .. import matrizes as M
 from .. import theme
 from ..scene import draw
 from ..textos import t
-from .base import SUCESSO, ERRO
-from .nocoes import Grade, Qual, Tile, _Escolha, _partes, _quatro, LIN, COL, MARCA, fmt_num, mini_matriz
+from .comum import COL, LIN, MARCA, Escolha, EscolherMatriz, Grade, fmt_num, primeiras, texto_partes
 
 SIM, NAO = "sim", "nao"
 NAO_EXISTE = "nao_existe"
@@ -31,7 +30,7 @@ def _pergunta(fim: str, ctx) -> tuple:
     return (fim, theme.OK if ctx.solved else COL)
 
 
-class _SimNao(_Escolha):
+class _SimNao(Escolha):
     baralhar = False
 
     def __init__(self, matriz, sim: bool, **kw):
@@ -42,7 +41,7 @@ class _SimNao(_Escolha):
 
 # ---- 2.3 -------------------------------------------------------------------------------------
 
-class Simetrica(_Escolha):
+class Simetrica(Escolha):
     """Symmetric (A = Aᵗ), antisymmetric (A = −Aᵗ) or neither."""
     ERROS = {"simetrica_trocada": "confundiu simétrica com anti-simétrica"}
     baralhar = False
@@ -59,7 +58,7 @@ class Simetrica(_Escolha):
         self.erros = {troca[self.resposta]: "simetrica_trocada"} if self.resposta in troca else {}
 
     def _ajuda(self, surf, ctx):
-        self.g.diagonal(surf, tuple(int(v * (0.4 + 0.6 * ctx.hint_alpha)) for v in MARCA))
+        self.g.diagonal(surf, theme.piscar(MARCA, ctx.hint_alpha, 0.4))
 
     def desenhar_alvo(self, surf, ctx):
         self._titulo(surf, ctx, [(t("matriz") + " ", theme.TEXT), _pergunta(t(self.resposta) if ctx.solved else "?", ctx)])
@@ -68,7 +67,7 @@ class Simetrica(_Escolha):
         return f"matriz {t(self.resposta).lower()}"
 
 
-class TipoProduto(_Escolha):
+class TipoProduto(Escolha):
     """Type of A · B from the types of A and B, or 'it does not exist'."""
     ERROS = {
         "tipo_de_dentro": "usou os números de dentro (colunas de A × linhas de B) para o tipo do produto",
@@ -83,7 +82,7 @@ class TipoProduto(_Escolha):
         ok = ta[1] == tb[0]
         self.resposta = (ta[0], tb[1]) if ok else NAO_EXISTE
         outros = [(ta[0], tb[1]), (ta[1], tb[0]), ta, tb, (tb[1], ta[0])]
-        self.opcoes = _quatro(([self.resposta] if ok else []) + [o for o in outros if o != self.resposta])[:3] + [NAO_EXISTE]
+        self.opcoes = primeiras(([self.resposta] if ok else []) + [o for o in outros if o != self.resposta])[:3] + [NAO_EXISTE]
         self.erros = ({(ta[1], tb[0]): "tipo_de_dentro"} if ok
                       else {o: "nao_compativel" for o in self.opcoes if o != NAO_EXISTE})
         self.erros.pop(self.resposta, None)
@@ -122,7 +121,7 @@ class TipoProduto(_Escolha):
 
 # ---- 3.2 -------------------------------------------------------------------------------------
 
-class Caracteristica(_Escolha):
+class Caracteristica(Escolha):
     """c(A): the number of pivots of an echelon form of A."""
     ERROS = {"contou_linhas": "contou todas as linhas, mesmo as que ficam nulas depois de escalonar"}
 
@@ -132,7 +131,7 @@ class Caracteristica(_Escolha):
         linhas = len(a)
         self.resposta = M.caracteristica(a)
         self.erros = {linhas: "contou_linhas"} if linhas != self.resposta else {}
-        self.opcoes = _quatro([v for v in (self.resposta, linhas, self.resposta + 1, self.resposta - 1, len(a[0]),
+        self.opcoes = primeiras([v for v in (self.resposta, linhas, self.resposta + 1, self.resposta - 1, len(a[0]),
                                            self.resposta + 2) if v >= 0])
 
     def desenhar_alvo(self, surf, ctx):
@@ -147,25 +146,30 @@ class Caracteristica(_Escolha):
 
 # ---- 4: linear systems -----------------------------------------------------------------------------
 
-class _Sistema:
-    """Mixin: `self.m` is the augmented matrix [A | B]; the bar is drawn before the last column."""
+class _Sistema(Escolha):
+    """Questions about a system: the matrix is its augmented matrix [A | B] (`self.a`, exact),
+    drawn with a dashed bar before the last column. No row / column numbers as help."""
 
-    def _ampliada(self):
+    def __init__(self, sistema, **kw):
+        super().__init__(sistema, **kw)
         self.barra = len(self.m[0]) - 1
-        return M.matriz(self.m)
+        self.a = M.matriz(self.m)
 
     def _ajuda(self, surf, ctx):
         pass
 
 
-class Solucao(_Sistema, _SimNao):
+class Solucao(_Sistema):
     """Is this point a solution of the system?"""
+    baralhar = False
 
     def __init__(self, sistema, ponto, **kw):
+        super().__init__(sistema, **kw)
         self.ponto = [E.frac(v) for v in ponto]
-        super().__init__(sistema, M.e_solucao(M.matriz(sistema), ponto), **kw)
-        if len(self.ponto) != len(self._ampliada()[0]) - 1:
+        if len(self.ponto) != len(self.a[0]) - 1:
             raise ValueError("Solucao: o ponto precisa de um valor para cada incógnita")
+        self.opcoes = [SIM, NAO]
+        self.resposta = SIM if M.e_solucao(self.a, self.ponto) else NAO
 
     def desenhar_alvo(self, surf, ctx):
         ponto = "(" + ", ".join(fmt_num(v) for v in self.ponto) + ")"
@@ -175,7 +179,7 @@ class Solucao(_Sistema, _SimNao):
         return "o ponto é solução do sistema?"
 
 
-class Classificar(_Sistema, _Escolha):
+class Classificar(_Sistema):
     """Impossible, possible and determined, or possible and undetermined."""
     ERROS = {
         "incognita_livre": "disse determinado, mas há incógnitas livres (c(A) < n)",
@@ -187,7 +191,7 @@ class Classificar(_Sistema, _Escolha):
 
     def __init__(self, sistema, **kw):
         super().__init__(sistema, **kw)
-        a = self._ampliada()
+        a = self.a
         self.resposta = "sel_" + M.classificar(a)
         self.opcoes = ["sel_imp", "sel_pd", "sel_pi"]
         homogeneo = all(r[-1] == 0 for r in a)
@@ -206,20 +210,20 @@ class Classificar(_Sistema, _Escolha):
         return f"classificar o sistema: {t(self.resposta).lower()}"
 
 
-class Grau(_Sistema, _Escolha):
+class Grau(_Sistema):
     """Degree of indetermination g = n − c(A): the number of free unknowns."""
     ERROS = {"contou_pivots": "deu o número de pivots (c(A)) em vez das incógnitas livres (n − c(A))"}
 
     def __init__(self, sistema, **kw):
         super().__init__(sistema, **kw)
-        a = self._ampliada()
+        a = self.a
         n = len(a[0]) - 1
         if M.classificar(a) == "imp":
             raise ValueError("Grau: o sistema é impossível, não tem grau de indeterminação")
         c = M.caracteristica(a, n)
         self.resposta = n - c
         self.erros = {c: "contou_pivots"} if c != self.resposta else {}
-        self.opcoes = _quatro([self.resposta, c, n, self.resposta + 1, 0, self.resposta + 2])
+        self.opcoes = primeiras([self.resposta, c, n, self.resposta + 1, 0, self.resposta + 2])
 
     def desenhar_alvo(self, surf, ctx):
         self._titulo(surf, ctx, [("g = ", theme.TEXT), _pergunta(str(self.resposta) if ctx.solved else "?", ctx)])
@@ -249,7 +253,7 @@ class Regular(_SimNao):
         return "a matriz é regular?"
 
 
-class Det(_Escolha):
+class Det(Escolha):
     """|A|: the determinant."""
     ERROS = {
         "sinal": "valor certo, sinal errado",
@@ -273,10 +277,10 @@ class Det(_Escolha):
         if n == 2:
             cand[diag + anti] = "somou"
         self.erros = {v: k for v, k in cand.items() if v != d}
-        self.opcoes = _quatro([d, *self.erros, d + 1, d - 1, d + 2])
+        self.opcoes = primeiras([d, *self.erros, d + 1, d - 1, d + 2])
 
     def _ajuda(self, surf, ctx):
-        self.g.diagonal(surf, tuple(int(v * (0.4 + 0.6 * ctx.hint_alpha)) for v in MARCA))
+        self.g.diagonal(surf, theme.piscar(MARCA, ctx.hint_alpha, 0.4))
 
     def desenhar_alvo(self, surf, ctx):
         self._titulo(surf, ctx, [("|A| = ", theme.TEXT), _pergunta(fmt_num(self.resposta) if ctx.solved else "?", ctx)])
@@ -285,7 +289,7 @@ class Det(_Escolha):
         return f"determinante = {fmt_num(self.resposta)}"
 
 
-class Cofator(_Escolha):
+class Cofator(Escolha):
     """A_ij = (−1)^(i+j) |A(i | j)|."""
     ERROS = {
         "sinal_cofator": "calculou o determinante menor e esqueceu o sinal (−1)^(i+j)",
@@ -300,7 +304,7 @@ class Cofator(_Escolha):
         menor = M.det(M.menor(a, i - 1, j - 1))
         self.resposta = c
         self.erros = {v: k for v, k in ((a[i - 1][j - 1], "entrada"), (menor, "sinal_cofator")) if v != c}
-        self.opcoes = _quatro([c, *self.erros, -c, c + 1, c - 1, c + 2])
+        self.opcoes = primeiras([c, *self.erros, -c, c + 1, c - 1, c + 2])
 
     def _ajuda(self, surf, ctx):                    # the row and the column that are struck out
         self.g.faixa(surf, LIN, linha=self.i - 1)
@@ -315,7 +319,7 @@ class Cofator(_Escolha):
         return f"cofator A{self.i}{self.j} = {fmt_num(self.resposta)}"
 
 
-class DetApos(_Escolha):
+class DetApos(Escolha):
     """|A| is shown. What is the determinant after one elementary operation? (Teorema 6.3)"""
     ERROS = {
         "troca_sinal": "trocou duas linhas e esqueceu que o determinante muda de sinal",
@@ -341,24 +345,24 @@ class DetApos(_Escolha):
             self.resposta = self.d
             self.erros = {v: "combina_muda" for v in (-self.d, k * self.d) if v != self.d}
         self.erros.pop(self.resposta, None)
-        self.opcoes = _quatro([self.resposta, *self.erros, -self.resposta, self.d, 2 * self.d, 0, self.d + 1])
+        self.opcoes = primeiras([self.resposta, *self.erros, -self.resposta, self.d, 2 * self.d, 0, self.d + 1])
 
     def _ajuda(self, surf, ctx):
         pass
 
     def desenhar_alvo(self, surf, ctx):
         # two lines, so that it stays readable on a phone: the determinants, then the operation
-        _partes(surf, [(f"|A| = {fmt_num(self.d)}      |B| = ", theme.TEXT),
+        texto_partes(surf, [(f"|A| = {fmt_num(self.d)}      |B| = ", theme.TEXT),
                        _pergunta(fmt_num(self.resposta) if ctx.solved else "?", ctx)],
                 ctx.width / 2, ctx.hud_y - 12, 38, ctx.width - 170)
-        _partes(surf, [("A  →  B :   ", theme.TEXT_DIM), (E.texto(self.op), LIN)],
+        texto_partes(surf, [("A  →  B :   ", theme.TEXT_DIM), (E.texto(self.op), LIN)],
                 ctx.width / 2, ctx.hud_y + 26, 28, ctx.width - 170)
 
     def descricao(self):
         return f"determinante depois de {E.texto(self.op)}"
 
 
-class DetProp(_Escolha):
+class DetProp(Escolha):
     """Properties of the determinant (Teorema 6.4), from the determinants alone:
         DetProp("produto", 2, 3)          |A| = 2, |B| = 3   ->  |A · B| = 6
         DetProp("transposta", 5)          |A| = 5            ->  |Aᵗ| = 5
@@ -388,7 +392,7 @@ class DetProp(_Escolha):
         else:
             raise ValueError("DetProp: tipo deve ser 'produto', 'transposta', 'escalar' ou 'inversa'")
         self.erros = {v: c for v, c in cand.items() if v != self.resposta}
-        self.opcoes = _quatro([self.resposta, *self.erros, -self.resposta, self.resposta + 1, 0, self.resposta + 2])
+        self.opcoes = primeiras([self.resposta, *self.erros, -self.resposta, self.resposta + 1, 0, self.resposta + 2])
 
     def _dados(self) -> list:
         dados = f"|A| = {fmt_num(self.a)}"
@@ -407,7 +411,7 @@ class DetProp(_Escolha):
         }[self.tipo]
 
     def _desenhar_matriz(self, surf, ctx):
-        _partes(surf, self._dados(), ctx.width / 2, ctx.height * 0.36, 52, ctx.width - 40)
+        texto_partes(surf, self._dados(), ctx.width / 2, ctx.height * 0.36, 52, ctx.width - 40)
 
     def _ajuda(self, surf, ctx):
         pass
@@ -420,7 +424,7 @@ class DetProp(_Escolha):
         return f"propriedade do determinante ({self.tipo}): {fmt_num(self.resposta)}"
 
 
-class _Permutacao(_Escolha):
+class _Permutacao(Escolha):
     def __init__(self, perm, **kw):
         self.perm = list(perm)
         self.n_inv = M.inversoes(self.perm)
@@ -436,7 +440,7 @@ class Inversoes(_Permutacao):
     def __init__(self, perm, **kw):
         super().__init__(perm, **kw)
         self.resposta = self.n_inv
-        self.opcoes = _quatro([v for v in (self.n_inv, self.n_inv + 1, self.n_inv - 1, len(self.perm),
+        self.opcoes = primeiras([v for v in (self.n_inv, self.n_inv + 1, self.n_inv - 1, len(self.perm),
                                            self.n_inv + 2, 0) if v >= 0])
 
     def desenhar_alvo(self, surf, ctx):
@@ -472,7 +476,7 @@ def _cramer(sistema):
     return a, n
 
 
-class CramerMatriz(Qual):
+class CramerMatriz(EscolherMatriz):
     """Which matrix is A_i (column i of A replaced by the independent terms)?"""
     ERROS = {
         "coluna_errada": "substituiu outra coluna, não a da incógnita pedida",
@@ -480,7 +484,7 @@ class CramerMatriz(Qual):
     }
 
     def __init__(self, sistema, i, **kw):
-        super(Qual, self).__init__(**kw)
+        super().__init__(**kw)
         self.sistema, n = _cramer(sistema)
         self.i = i
         b = [r[-1] for r in self.sistema]
@@ -509,14 +513,14 @@ class CramerMatriz(Qual):
         super().desenhar(surf, ctx)
 
     def desenhar_alvo(self, surf, ctx):
-        _partes(surf, [("A", theme.TEXT), (str(self.i), COL, "sub"), (" = ", theme.TEXT), _pergunta("?", ctx)],
+        texto_partes(surf, [("A", theme.TEXT), (str(self.i), COL, "sub"), (" = ", theme.TEXT), _pergunta("?", ctx)],
                 ctx.width / 2, ctx.hud_y, 50, ctx.width - 170)
 
     def descricao(self):
         return f"regra de Cramer: qual é a matriz A{self.i}?"
 
 
-class CramerValor(_Sistema, _Escolha):
+class CramerValor(_Sistema):
     """x_i = |A_i| / |A|."""
     ERROS = {
         "faltou_dividir": "deu |A_i| e esqueceu de dividir por |A|",
@@ -526,14 +530,13 @@ class CramerValor(_Sistema, _Escolha):
     def __init__(self, sistema, i, **kw):
         super().__init__(sistema, **kw)
         a, n = _cramer(sistema)
-        self._ampliada()
         self.i = i
         d = M.det([r[:-1] for r in a])
         xs = [M.det(M.cramer_matriz(a, k)) / d for k in range(n)]
         self.resposta = xs[i - 1]
         cand = {xs[i % n]: "coluna_errada", M.det(M.cramer_matriz(a, i - 1)): "faltou_dividir"}
         self.erros = {v: k for v, k in cand.items() if v != self.resposta}
-        self.opcoes = _quatro([self.resposta, *self.erros, -self.resposta, self.resposta + 1, self.resposta - 1,
+        self.opcoes = primeiras([self.resposta, *self.erros, -self.resposta, self.resposta + 1, self.resposta - 1,
                                self.resposta + 2])
 
     def desenhar_alvo(self, surf, ctx):

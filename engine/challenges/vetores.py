@@ -57,7 +57,7 @@ class MoverVetor(Desafio):
 
     def desenhar_dica(self, surf, ctx):
         cam = ctx.cam
-        c = tuple(int(v * (0.3 + 0.7 * ctx.hint_alpha)) for v in theme.GHOST)
+        c = theme.piscar(theme.GHOST, ctx.hint_alpha, 0.3)
         # walk: x along the axis, then y up/down
         corner = Vec2(self.alvo.x, 0)
         draw.dashed_line(surf, theme.I_HAT, cam.to_screen((0, 0)), cam.to_screen(corner), 3)
@@ -115,7 +115,7 @@ class SomarVetores(Desafio):
 
     def desenhar_dica(self, surf, ctx):
         cam = ctx.cam
-        c = tuple(int(v * (0.3 + 0.7 * ctx.hint_alpha)) for v in theme.VEC2)
+        c = theme.piscar(theme.VEC2, ctx.hint_alpha, 0.3)
         draw.dashed_arrow(surf, c, cam.to_screen(self.v), cam.to_screen(self.v + self.w), 3)
 
     def descricao(self):
@@ -168,7 +168,7 @@ class Escalar(Desafio):
 
     def desenhar_dica(self, surf, ctx):
         cam = ctx.cam
-        c = tuple(int(v * (0.3 + 0.7 * ctx.hint_alpha)) for v in theme.GHOST)
+        c = theme.piscar(theme.GHOST, ctx.hint_alpha, 0.3)
         far = self.v * (12 / max(self.v.length(), 1e-6))
         draw.dashed_line(surf, c, cam.to_screen(-far), cam.to_screen(far), 2)
         # copies of v laid tip-to-tail

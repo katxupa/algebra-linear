@@ -15,44 +15,20 @@ Colour code used in every challenge here: ROW index = blue, COLUMN index = yello
 """
 from __future__ import annotations
 
-import random
-
 import pygame
 
-from .. import escalonamento as E
 from .. import theme
 from ..scene import draw
 from ..textos import t
-from .base import Desafio, SUCESSO, ERRO
-
-LIN = theme.VEC2
-COL = theme.VEC
-MARCA = theme.RESULT
+from .base import SUCESSO, ERRO
+from .comum import (COL, LIN, MARCA, ComMatriz, Escolha, EscolherMatriz, fmt_num, primeiras, quadrada,
+                    texto_partes)
 
 #: name used in lesson.py -> text key
 NOMES = {
     "triangular superior": "tri_sup", "triangular inferior": "tri_inf", "diagonal": "m_diagonal",
     "escalar": "m_escalar", "identidade": "m_identidade", "nula": "m_nula",
 }
-
-
-def fmt_num(v) -> str:
-    """Numbers as the sebenta writes them: exact fractions, a real minus sign. Text stays as it is."""
-    return v if isinstance(v, str) else E.fmt(E.frac(v))
-
-
-def _retangular(m) -> list[list]:
-    m = [list(r) for r in m]
-    if not m or not m[0] or any(len(r) != len(m[0]) for r in m):
-        raise ValueError("a matriz precisa de linhas com o mesmo número de entradas")
-    return m
-
-
-def _quadrada(m) -> list[list]:
-    m = _retangular(m)
-    if len(m) != len(m[0]):
-        raise ValueError("este desafio precisa de uma matriz quadrada")
-    return m
 
 
 def e_do_tipo(nome: str, m) -> bool:
@@ -68,264 +44,9 @@ def e_do_tipo(nome: str, m) -> bool:
     }[nome]
 
 
-def _partes(surf, partes, cx, cy, size, max_w) -> None:
-    """Coloured pieces of text on one centred line. A piece is (text, colour), or (text, colour, "sub")
-    for a subscript (True also works), or (text, colour, "sup") for a superscript. Arrows are drawn.
-    Shrinks to fit `max_w`."""
-    def modo(p):
-        return None if len(p) < 3 or not p[2] else "sup" if p[2] == "sup" else "sub"
-
-    def tam(p, sz):
-        return int(sz * 0.62) if modo(p) else sz
-
-    def largura(sz):
-        return sum(draw.text_width(p[0], tam(p, sz)) for p in partes)
-
-    while size > 18 and largura(size) > max_w:
-        size -= 2
-    x = cx - largura(size) / 2
-    for p in partes:
-        dy = {"sub": size * 0.3, "sup": -size * 0.3, None: 0}[modo(p)]
-        draw.text_setas(surf, p[0], (x, cy + dy), tam(p, size), p[1], "midleft")
-        x += draw.text_width(p[0], tam(p, size))
-
-
-def mini_matriz(surf, m, centro, size, cor=theme.TEXT) -> None:
-    """A small matrix with brackets, centred (no interaction). Shrinks wide entries to fit."""
-    txt = [[fmt_num(v) for v in r] for r in m]
-    col_w = max(draw.text_width(s, size) for r in txt for s in r) + size * 0.5
-    row_h = size * 0.95
-    w, h = col_w * len(m[0]), row_h * len(m)
-    x0, y0 = centro[0] - w / 2, centro[1] - h / 2
-    for r, row in enumerate(txt):
-        for c, s in enumerate(row):
-            draw.text(surf, s, (x0 + col_w * (c + 0.5), y0 + row_h * (r + 0.5)), size, cor)
-    tick = size * 0.25
-    for lado, x in ((-1, x0 - 4), (1, x0 + w + 4)):
-        pygame.draw.lines(surf, cor, False, [(x - lado * tick, y0), (x, y0), (x, y0 + h), (x - lado * tick, y0 + h)], 2)
-
-
-class Grade:
-    """A matrix on the screen: square cells you can tap, plus numbered row and column labels."""
-
-    def __init__(self, m):
-        self.m = m
-        self.rows, self.cols = len(m), len(m[0])
-        self.cell, self.x0, self.y0 = 40, 0.0, 0.0
-        self.max_cell = 92
-        self.barra = None            # column index: a dashed bar before it, as in [A | B]
-
-    def layout(self, area: pygame.Rect, folga: bool = True) -> None:
-        """Fit inside `area`. `folga` keeps room for the row / column numbers around the matrix."""
-        f = 1.0 if folga else 0.0
-        self.cell = int(max(22, min(self.max_cell, area.w / (self.cols + 0.5 + 1.4 * f),
-                                    area.h / (self.rows + 0.2 + 1.1 * f))))
-        self.x0 = area.centerx - self.cols * self.cell / 2 + self.cell * 0.4 * f
-        self.y0 = area.centery - self.rows * self.cell / 2 + self.cell * 0.4 * f
-
-    def rect(self, r, c) -> pygame.Rect:
-        return pygame.Rect(int(self.x0 + c * self.cell), int(self.y0 + r * self.cell), self.cell, self.cell)
-
-    def rot_linha(self, r):
-        return (self.x0 - self.cell * 0.62, self.y0 + (r + 0.5) * self.cell)
-
-    def rot_coluna(self, c):
-        return (self.x0 + (c + 0.5) * self.cell, self.y0 - self.cell * 0.62)
-
-    def celula(self, x, y):
-        c, r = int((x - self.x0) // self.cell), int((y - self.y0) // self.cell)
-        return (r, c) if 0 <= r < self.rows and 0 <= c < self.cols else None
-
-    def rotulo(self, x, y):
-        raio = self.cell * 0.5
-        for r in range(self.rows):
-            cx, cy = self.rot_linha(r)
-            if (x - cx) ** 2 + (y - cy) ** 2 <= raio * raio:
-                return ("l", r)
-        for c in range(self.cols):
-            cx, cy = self.rot_coluna(c)
-            if (x - cx) ** 2 + (y - cy) ** 2 <= raio * raio:
-                return ("c", c)
-        return None
-
-    def faixa(self, surf, cor, linha=None, coluna=None) -> None:
-        """A dim band over a whole row or column."""
-        cor = tuple(int(v * 0.3) for v in cor)
-        if linha is not None:
-            rect = pygame.Rect(int(self.x0), int(self.y0 + linha * self.cell + 4), self.cols * self.cell, self.cell - 8)
-        else:
-            rect = pygame.Rect(int(self.x0 + coluna * self.cell + 4), int(self.y0), self.cell - 8, self.rows * self.cell)
-        pygame.draw.rect(surf, cor, rect, border_radius=10)
-
-    def diagonal(self, surf, cor) -> None:
-        a, b = self.rect(0, 0).center, self.rect(self.rows - 1, self.cols - 1).center
-        draw.dashed_line(surf, cor, a, b, 3, 10)
-
-    def desenhar(self, surf, estilo=None, cor=theme.TEXT) -> None:
-        """`estilo(r, c)` may return {"txt", "cor", "fundo", "borda"} to change one cell."""
-        size = int(self.cell * 0.5)
-        for r in range(self.rows):
-            for c in range(self.cols):
-                e = (estilo(r, c) if estilo else None) or {}
-                rect = self.rect(r, c).inflate(-8, -8)
-                if e.get("fundo"):
-                    pygame.draw.rect(surf, e["fundo"], rect, border_radius=10)
-                if e.get("borda"):
-                    pygame.draw.rect(surf, e["borda"], rect, 3, border_radius=10)
-                txt = e.get("txt", fmt_num(self.m[r][c]))
-                sz = size
-                while sz > 12 and draw.text_width(txt, sz) > self.cell - 10:
-                    sz -= 2
-                draw.text(surf, txt, rect.center, sz, e.get("cor", cor))
-        yt, yb = self.y0, self.y0 + self.rows * self.cell
-        tick = self.cell * 0.2
-        for lado, x in ((-1, self.x0 - 5), (1, self.x0 + self.cols * self.cell + 5)):
-            pygame.draw.lines(surf, cor, False, [(x - lado * tick, yt), (x, yt), (x, yb), (x - lado * tick, yb)], 3)
-        if self.barra is not None:
-            bx = self.x0 + self.barra * self.cell
-            draw.dashed_line(surf, theme.TEXT_DIM, (bx, yt + 4), (bx, yb - 4), 2, 6)
-
-    def rotulos(self, surf, fora_l=(), fora_c=(), pisca_l=(), pisca_c=(), alpha=1.0) -> None:
-        """Row numbers (blue) on the left, column numbers (yellow) on top."""
-        raio, size = self.cell * 0.3, int(self.cell * 0.36)
-        for n, centro, cor, fora, pisca in (
-                [(r, self.rot_linha(r), LIN, fora_l, pisca_l) for r in range(self.rows)] +
-                [(c, self.rot_coluna(c), COL, fora_c, pisca_c) for c in range(self.cols)]):
-            apagado = n in fora
-            c2 = tuple(int(v * 0.35) for v in cor) if apagado else cor
-            draw.circle(surf, theme.PANEL, centro, raio)
-            draw.circle(surf, c2, centro, raio, 2)
-            draw.text(surf, str(n + 1), centro, size, c2)
-            if n in pisca:
-                draw.circle(surf, tuple(int(v * (0.3 + 0.7 * alpha)) for v in theme.TEXT), centro, raio + 6, 2)
-
-
-class Tile:
-    def __init__(self, valor):
-        self.valor = valor
-        self.rect = pygame.Rect(0, 0, 0, 0)
-
-
-class _ComMatriz(Desafio):
-    """Common ground: a matrix in the middle of a plain black screen, optional answer tiles below."""
-
-    plano = False
-    baralhar = True
-
-    barra = None                     # column index of the bar of an augmented matrix [A | B]
-
-    def __init__(self, matriz=None, **kw):
-        super().__init__(**kw)
-        self.m = _retangular(matriz) if matriz is not None else None
-        self.opcoes: list = []
-
-    def iniciar(self):
-        self.g = Grade(self.m) if self.m else None
-        if self.g:
-            self.g.barra = self.barra
-        self.tiles = [Tile(v) for v in self.opcoes]
-        if self.baralhar:
-            random.shuffle(self.tiles)   # a new order every time: no learning "it is the first one"
-        self.sel = None
-        self.pressed = False
-        self.ajuda = False
-
-    def desenhar_dica(self, surf, ctx):
-        self.ajuda = True            # the help itself is drawn in `desenhar`, over the matrix
-
-    # ---- layout ---------------------------------------------------------------------
-    def layout(self, ctx):
-        base = ctx.height * 0.6 if self.tiles else ctx.height - 90
-        self._layout_matriz(ctx, pygame.Rect(16, 124, ctx.width - 32, int(base - 124)))
-        if not self.tiles:
-            return
-        h = max(52, min(84, int(ctx.width / 7)))
-        self.tile_size = int(h * 0.42)
-        w = max(h, max(sum(draw.text_width(p[0], self.tile_size) for p in self._tile(tl.valor))
-                       for tl in self.tiles) + int(h * 0.5))
-        gap = h // 4
-        por_linha = max(1, min(len(self.tiles), (ctx.width - 30 + gap) // (w + gap)))
-        for k, tl in enumerate(self.tiles):
-            r, c = divmod(k, por_linha)
-            n = min(por_linha, len(self.tiles) - r * por_linha)
-            x0 = (ctx.width - (n * w + (n - 1) * gap)) / 2
-            tl.rect = pygame.Rect(int(x0 + c * (w + gap)), int(ctx.height * 0.66 + r * (h + gap)), w, h)
-
-    def _layout_matriz(self, ctx, area: pygame.Rect) -> None:
-        if self.g:
-            self.g.layout(area)
-
-    def _tile(self, valor) -> list:
-        """Coloured text pieces shown on a tile."""
-        return [(fmt_num(valor) if not isinstance(valor, str) else t(valor), theme.TEXT)]
-
-    def _desenhar_tiles(self, surf, ctx):
-        for tl in self.tiles:
-            escolhido = self.sel is not None and tl.valor == self.sel
-            borda = theme.GRID_MAJOR if not escolhido else theme.OK if ctx.solved else theme.BAD
-            pygame.draw.rect(surf, theme.PANEL_HI if escolhido else theme.PANEL, tl.rect, border_radius=16)
-            pygame.draw.rect(surf, borda, tl.rect, 3, border_radius=16)
-            _partes(surf, self._tile(tl.valor), tl.rect.centerx, tl.rect.centery, self.tile_size, tl.rect.w)
-
-    def _titulo(self, surf, ctx, partes, size=46):
-        _partes(surf, partes, ctx.width / 2, ctx.hud_y, size, ctx.width - 170)
-
-
-class _Escolha(_ComMatriz):
-    """One tap on a tile is an attempt. Subclasses set `opcoes`, `resposta` and `erros`."""
-
-    resposta = None
-    erros: dict = {}
-
-    def estado(self):
-        return repr(self.sel)
-
-    def avaliar(self):
-        if self.sel == self.resposta:
-            return SUCESSO
-        return self.erros.get(self.sel, ERRO)
-
-    def press(self, ctx, sx, sy):
-        for tl in self.tiles:
-            if tl.rect.collidepoint(sx, sy):
-                self.sel, self.pressed = tl.valor, True
-                return True
-        return False
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
-        was, self.pressed = self.pressed, False
-        return was
-
-    def desenhar(self, surf, ctx):
-        self._desenhar_matriz(surf, ctx)
-        if self.ajuda or ctx.solved:
-            self._ajuda(surf, ctx)
-        self._desenhar_tiles(surf, ctx)
-
-    def _desenhar_matriz(self, surf, ctx):
-        if self.g:
-            self.g.desenhar(surf)
-
-    def _ajuda(self, surf, ctx):
-        if self.g:
-            self.g.rotulos(surf)
-
-
-def _quatro(opcoes: list) -> list:
-    """The first four different options (the right answer comes first in the list given)."""
-    unicas = []
-    for o in opcoes:
-        if o not in unicas:
-            unicas.append(o)
-    return unicas[:4]
-
-
 # ---- 2.1: entries, type, kinds ---------------------------------------------------------------
 
-class Entrada(_ComMatriz):
+class Entrada(ComMatriz):
     """Tap the entry a_ij (row i, column j)."""
 
     ERROS = {
@@ -354,19 +75,11 @@ class Entrada(_ComMatriz):
             return "trocou_ij"
         return "so_linha" if r == self.alvo[0] else "so_coluna" if c == self.alvo[1] else ERRO
 
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         cel = self.g.celula(sx, sy)
-        if cel is None:
-            return False
-        self.sel, self.pressed = cel, True
-        return True
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
-        was, self.pressed = self.pressed, False
-        return was
+        if cel is not None:
+            self.sel = cel
+        return cel is not None
 
     def desenhar(self, surf, ctx):
         if self.ajuda and not ctx.solved:            # help: the row (blue) and the column (yellow)
@@ -378,13 +91,13 @@ class Entrada(_ComMatriz):
             self.g.rotulos(surf)
 
     def desenhar_alvo(self, surf, ctx):
-        self._titulo(surf, ctx, [("a", theme.TEXT), (str(self.i), LIN, True), (str(self.j), COL, True)], 60)
+        self._titulo(surf, ctx, [("a", theme.TEXT), (str(self.i), LIN, "sub"), (str(self.j), COL, "sub")], 60)
 
     def descricao(self):
         return f"tocar na entrada a{self.i}{self.j}"
 
 
-class Tipo(_Escolha):
+class Tipo(Escolha):
     """Pick the type m × n of the matrix."""
 
     ERROS = {"trocou_mn": "trocou linhas com colunas (disse n × m em vez de m × n)"}
@@ -395,7 +108,7 @@ class Tipo(_Escolha):
         self.resposta = (m, n)
         self.erros = {(n, m): "trocou_mn"} if m != n else {}
         cand = [(m, n), (n, m), (m + 1, n), (m, n + 1), (m + 1, n + 1), (max(1, m - 1), n)]
-        self.opcoes = _quatro(cand)
+        self.opcoes = primeiras(cand)
 
     def _tile(self, v):
         return [(str(v[0]), LIN), (" × ", theme.TEXT), (str(v[1]), COL)]
@@ -408,7 +121,7 @@ class Tipo(_Escolha):
         return f"tipo da matriz: {self.resposta[0]} × {self.resposta[1]}"
 
 
-class Forma(_Escolha):
+class Forma(Escolha):
     """Row matrix, column matrix, square or rectangular."""
 
     ERROS = {"linha_coluna": "confundiu matriz linha com matriz coluna"}
@@ -439,7 +152,7 @@ class Forma(_Escolha):
 
 # ---- 2.2: square matrices ----------------------------------------------------------------------
 
-class Traco(_Escolha):
+class Traco(Escolha):
     """tr(A): the sum of the main diagonal."""
 
     ERROS = {
@@ -448,19 +161,19 @@ class Traco(_Escolha):
     }
 
     def __init__(self, matriz, **kw):
-        super().__init__(_quadrada(matriz), **kw)
+        super().__init__(quadrada(matriz), **kw)
         n = len(self.m)
         self.resposta = sum(self.m[i][i] for i in range(n))
         outra = sum(self.m[i][n - 1 - i] for i in range(n))
         tudo = sum(v for r in self.m for v in r)
         self.erros = {v: k for v, k in ((tudo, "somou_tudo"), (outra, "diagonal_errada")) if v != self.resposta}
-        self.opcoes = _quatro([self.resposta, outra, tudo, self.resposta + 1, self.resposta - 1, self.resposta + 2])
+        self.opcoes = primeiras([self.resposta, outra, tudo, self.resposta + 1, self.resposta - 1, self.resposta + 2])
 
     def _tile(self, v):
         return [(fmt_num(v), theme.TEXT)]
 
     def _ajuda(self, surf, ctx):
-        self.g.diagonal(surf, tuple(int(v * (0.4 + 0.6 * ctx.hint_alpha)) for v in MARCA))
+        self.g.diagonal(surf, theme.piscar(MARCA, ctx.hint_alpha, 0.4))
 
     def desenhar_alvo(self, surf, ctx):
         fim = fmt_num(self.resposta) if ctx.solved else "?"
@@ -470,7 +183,7 @@ class Traco(_Escolha):
         return f"traço = {fmt_num(self.resposta)}"
 
 
-class _Marcar(_ComMatriz):
+class _Marcar(ComMatriz):
     """Tap (or sweep over) cells to mark them, then confirm with the check button."""
 
     confirmar = True
@@ -486,11 +199,11 @@ class _Marcar(_ComMatriz):
     def _pinta(self, cel):
         (self.marc.add if self.pintar else self.marc.discard)(cel)
 
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         cel = self.g.celula(sx, sy)
         if cel is None:
             return False
-        self.pintar = cel not in self.marc
+        self.pintar = cel not in self.marc        # the first cell decides: mark or unmark the sweep
         self._pinta(cel)
         return True
 
@@ -501,11 +214,11 @@ class _Marcar(_ComMatriz):
 
     def release(self, ctx):
         self.pintar = None
-        return False
+        return super().release(ctx)
 
     def _diagonal_ajuda(self, surf, ctx):
         if self.ajuda and not ctx.solved:
-            self.g.diagonal(surf, tuple(int(v * (0.4 + 0.6 * ctx.hint_alpha)) for v in theme.TEXT_DIM))
+            self.g.diagonal(surf, theme.piscar(theme.TEXT_DIM, ctx.hint_alpha, 0.4))
 
 
 class Diagonal(_Marcar):
@@ -517,7 +230,7 @@ class Diagonal(_Marcar):
     }
 
     def __init__(self, matriz, **kw):
-        super().__init__(_quadrada(matriz), **kw)
+        super().__init__(quadrada(matriz), **kw)
         n = len(self.m)
         self.certo = {(i, i) for i in range(n)}
         self.outra = {(i, n - 1 - i) for i in range(n)}
@@ -551,7 +264,7 @@ class Zerar(_Marcar):
     }
 
     def __init__(self, matriz, tipo="triangular superior", **kw):
-        super().__init__(_quadrada(matriz), **kw)
+        super().__init__(quadrada(matriz), **kw)
         if tipo not in ("triangular superior", "triangular inferior", "diagonal"):
             raise ValueError("Zerar: tipo deve ser 'triangular superior', 'triangular inferior' ou 'diagonal'")
         self.tipo = tipo
@@ -606,7 +319,7 @@ _OPCOES = {
 }
 
 
-class Qual(Desafio):
+class Qual(EscolherMatriz):
     """Which of these matrices is ...? Tap it. The engine brings its own matrices for each name;
     `opcoes=[m1, m2, ...]` replaces them (exactly one must have that name)."""
 
@@ -614,76 +327,20 @@ class Qual(Desafio):
         "triangulo_trocado": "escolheu a triangular do outro lado (superior ↔ inferior)",
         "diagonal_errada": "escolheu a matriz arrumada pela diagonal secundária",
     }
-    plano = False
 
     def __init__(self, nome, opcoes=None, **kw):
         super().__init__(**kw)
         if nome not in NOMES:
             raise ValueError(f"Qual: nome desconhecido {nome!r}; usar um de {sorted(NOMES)}")
         self.nome = nome
-        lista = [(_quadrada(m), None) for m in opcoes] if opcoes else [(m, k) for m, k in _OPCOES[nome]]
+        lista = [(quadrada(m), None) for m in opcoes] if opcoes else [(m, k) for m, k in _OPCOES[nome]]
         if sum(e_do_tipo(nome, m) for m, _ in lista) != 1:
             raise ValueError(f"Qual({nome!r}): exatamente uma das opções tem de ser {nome}")
         self.lista = lista
         self.certa = next(k for k, (m, _) in enumerate(lista) if e_do_tipo(nome, m))
 
-    def iniciar(self):
-        self.tiles = [Tile(k) for k in range(len(self.lista))]
-        random.shuffle(self.tiles)
-        self.sel = None
-        self.pressed = False
-
-    def estado(self):
-        return self.sel
-
-    def avaliar(self):
-        if self.sel is None:
-            return ERRO
-        return SUCESSO if self.sel == self.certa else (self.lista[self.sel][1] or ERRO)
-
-    def press(self, ctx, sx, sy):
-        for tl in self.tiles:
-            if tl.rect.collidepoint(sx, sy):
-                self.sel, self.pressed = tl.valor, True
-                return True
-        return False
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
-        was, self.pressed = self.pressed, False
-        return was
-
-    def _topo(self, ctx) -> int:
-        """Where the matrix tiles start (subclasses keep room above them)."""
-        return 135
-
-    def layout(self, ctx):
-        n = len(self.tiles)
-        por_linha = n if ctx.width >= n * 190 else 2
-        linhas = -(-n // por_linha)
-        topo, fundo = self._topo(ctx), ctx.height - 30
-        gap = 18
-        lado = int(min(230, (ctx.width - 30 - (por_linha - 1) * gap) / por_linha,
-                       (fundo - topo - (linhas - 1) * gap) / linhas))
-        y0 = topo + (fundo - topo - (linhas * lado + (linhas - 1) * gap)) / 2
-        for k, tl in enumerate(self.tiles):
-            r, c = divmod(k, por_linha)
-            cols = min(por_linha, n - r * por_linha)
-            x0 = (ctx.width - (cols * lado + (cols - 1) * gap)) / 2
-            tl.rect = pygame.Rect(int(x0 + c * (lado + gap)), int(y0 + r * (lado + gap)), lado, lado)
-
-    def desenhar(self, surf, ctx):
-        for tl in self.tiles:
-            escolhido = tl.valor == self.sel
-            borda = theme.GRID_MAJOR if not escolhido else theme.OK if ctx.solved else theme.BAD
-            pygame.draw.rect(surf, theme.PANEL_HI if escolhido else theme.PANEL, tl.rect, border_radius=18)
-            pygame.draw.rect(surf, borda, tl.rect, 3, border_radius=18)
-            mini_matriz(surf, self.lista[tl.valor][0], tl.rect.center, int(tl.rect.w * 0.2))
-
     def desenhar_alvo(self, surf, ctx):
-        _partes(surf, [(t(NOMES[self.nome]), COL), (" ?", theme.TEXT)], ctx.width / 2, ctx.hud_y, 40, ctx.width - 170)
+        texto_partes(surf, [(t(NOMES[self.nome]), COL), (" ?", theme.TEXT)], ctx.width / 2, ctx.hud_y, 40, ctx.width - 170)
 
     def descricao(self):
         return f"qual é a matriz {self.nome}?"
@@ -691,7 +348,7 @@ class Qual(Desafio):
 
 # ---- submatrices -------------------------------------------------------------------------------
 
-class Submatriz(_ComMatriz):
+class Submatriz(ComMatriz):
     """Strike out rows and columns (tap their numbers) until the submatrix is left.
     `ficar=(rows, cols)` is the notation A[rows | cols]; `tirar=(rows, cols)` is A(rows | cols)."""
 
@@ -736,19 +393,13 @@ class Submatriz(_ComMatriz):
             return "parenteses_trocados"
         return "so_linha" if self.tl == self.fora_l else "so_coluna" if self.tc == self.fora_c else ERRO
 
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         rot = self.g.rotulo(sx, sy)
         if rot is None:
             return False
-        alvo = self.tl if rot[0] == "l" else self.tc
-        alvo.symmetric_difference_update({rot[1]})
+        riscadas = self.tl if rot[0] == "l" else self.tc
+        riscadas.symmetric_difference_update({rot[1]})   # a second tap brings it back
         return True
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
-        return False
 
     def desenhar(self, surf, ctx):
         def estilo(r, c):

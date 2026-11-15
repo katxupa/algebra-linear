@@ -7,14 +7,14 @@ Each type builds its own equation, options and known mistakes from a few numbers
 from __future__ import annotations
 
 import math
-import random
 from fractions import Fraction
 
 import pygame
 
 from .. import theme
 from ..scene import draw
-from .base import Desafio, SUCESSO, ERRO
+from .base import DesafioToque, SUCESSO, ERRO
+from .comum import Peca, baralhar, desenhar_peca, fmt_num
 
 LACUNA = object()        # the blank in the equation
 NAO_EXISTE = "nao_existe"  # "there is no such number" tile (drawn as a crossed-out circle)
@@ -25,22 +25,10 @@ def _num(x) -> Fraction:
 
 
 def fmt(v) -> str:
-    if v is NAO_EXISTE:
-        return ""
-    if isinstance(v, str):
-        return v
-    v = _num(v)
-    s = str(abs(v.numerator)) if v.denominator == 1 else f"{abs(v.numerator)}/{v.denominator}"
-    return ("−" if v < 0 else "") + s
+    return "" if v is NAO_EXISTE else fmt_num(v)
 
 
-class Tile:
-    def __init__(self, valor):
-        self.valor = valor
-        self.rect = pygame.Rect(0, 0, 0, 0)
-
-
-class Completar(Desafio):
+class Completar(DesafioToque):
     """Generic 'fill the blank' challenge. Subclasses only describe the equation."""
 
     plano = False
@@ -55,15 +43,13 @@ class Completar(Desafio):
         for o in opcoes:
             if not any(_same(o, u) for u in uniq):
                 uniq.append(o)
-        random.Random(repr(conta)).shuffle(uniq)
         self.opcoes = uniq
         self.erros_valor = erros or {}
 
     # -- state ----------------------------------------------------------------------
     def iniciar(self):
-        self.tiles = [Tile(v) for v in self.opcoes]
+        self.tiles = baralhar([Peca(v) for v in self.opcoes])
         self.sel = None
-        self.pressed = False
 
     def estado(self):
         return None if self.sel is None else repr(self.sel)
@@ -77,20 +63,12 @@ class Completar(Desafio):
         return ERRO
 
     # -- input ----------------------------------------------------------------------
-    def press(self, ctx, sx, sy):
+    def tocar(self, ctx, sx, sy):
         for t in self.tiles:
             if t.rect.collidepoint(sx, sy):
                 self.sel = t.valor
-                self.pressed = True
                 return True
         return False
-
-    def move(self, ctx, sx, sy):
-        pass
-
-    def release(self, ctx):
-        was, self.pressed = self.pressed, False
-        return was
 
     # -- layout / drawing -------------------------------------------------------------
     def _sizes(self, ctx):
@@ -115,21 +93,13 @@ class Completar(Desafio):
         filled = self.resposta if ctx.solved else None
         self._equation(surf, ctx.width / 2, cy, size, filled, ctx)
         for t in self.tiles:
-            chosen = self.sel is not None and _same(t.valor, self.sel)
-            if ctx.solved and chosen:
-                border, fill = theme.OK, theme.PANEL_HI
-            elif chosen:
-                border, fill = theme.BAD, theme.PANEL_HI
-            else:
-                border, fill = theme.GRID_MAJOR, theme.PANEL
-            pygame.draw.rect(surf, fill, t.rect, border_radius=16)
-            pygame.draw.rect(surf, border, t.rect, 3, border_radius=16)
+            desenhar_peca(surf, t.rect, self.sel is not None and _same(t.valor, self.sel), ctx.solved)
             _value(surf, t.valor, t.rect.center, int(tile * 0.42), theme.TEXT)
 
     def desenhar_dica(self, surf, ctx):
         if self.regra:
             size, _ = self._sizes(ctx)
-            c = tuple(int(v * (0.35 + 0.65 * ctx.hint_alpha)) for v in theme.VEC2)
+            c = theme.piscar(theme.VEC2, ctx.hint_alpha, 0.35)
             draw.text(surf, self.regra, (ctx.width / 2, ctx.height * 0.38 - size * 1.3), int(size * 0.6), c)
 
     def _layout_equation(self, size):
