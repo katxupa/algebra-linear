@@ -50,8 +50,9 @@ class MoverBase(Desafio):
 
     def desenhar_alvo(self, surf, ctx):
         if self.ver == "matriz":
-            draw.matrix(surf, self.alvo.rows(), (ctx.width / 2, ctx.hud_y), 40,
-                        col_colors=(theme.I_HAT, theme.J_HAT))
+            estreito = ctx.width < 480              # narrow phone: keep clear of the progress dots
+            draw.matrix(surf, self.alvo.rows(), (ctx.width / 2, ctx.hud_y + (10 if estreito else 0)),
+                        32 if estreito else 40, col_colors=(theme.I_HAT, theme.J_HAT))
 
     def desenhar_dica(self, surf, ctx):
         ghost_basis(surf, ctx.cam, self.alvo, ctx.hint_alpha)

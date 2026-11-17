@@ -18,6 +18,7 @@ TEXTOS = {
         "monta_operacao": "monta a operação, ex:",
         "novo": "novo",
         "em_breve": "em breve",
+        "a_preparar_sons": "A preparar os sons...",
         "matriz": "Matriz",
         "m_linha": "Linha",
         "m_coluna": "Coluna",
@@ -58,6 +59,7 @@ TEXTOS = {
         "monta_operacao": "monta operason, ex:",
         "novo": "nobu",
         "em_breve": "ka ta tarda",
+        "a_preparar_sons": "Sta ta prepara sons...",
     },
 }
 

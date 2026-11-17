@@ -181,8 +181,8 @@ function show_infobox() {
     <title>{{cookiecutter.title}}</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="viewport" content="height=device-height, initial-scale=1.0">
+    <!-- one viewport tag (a second one replaces the first); no pinch / double-tap zoom while playing -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes"/>
 
@@ -222,6 +222,9 @@ function show_infobox() {
         /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
         /* average size of droid screen 470dp x 320dp  */
         canvas.emscripten:focus { outline: none; }
+        /* the game takes the whole page; taps go to the game, not to scrolling or zooming */
+        html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+        canvas.emscripten { touch-action: none; }
         canvas.emscripten {
             border: 0px none;
             background-color: transparent;

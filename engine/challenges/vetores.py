@@ -53,7 +53,9 @@ class MoverVetor(Desafio):
         self.tip.draw(surf, cam)
 
     def desenhar_alvo(self, surf, ctx):
-        draw.matrix(surf, [[self.alvo.x], [self.alvo.y]], (ctx.width / 2, ctx.hud_y), 40, theme.VEC)
+        estreito = ctx.width < 480              # narrow phone: keep clear of the progress dots
+        draw.matrix(surf, [[self.alvo.x], [self.alvo.y]], (ctx.width / 2, ctx.hud_y + (10 if estreito else 0)),
+                    32 if estreito else 40, theme.VEC)
 
     def desenhar_dica(self, surf, ctx):
         cam = ctx.cam

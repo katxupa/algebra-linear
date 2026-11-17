@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import random
 import re
+import sys
 from collections import deque
 
 import pygame
@@ -89,13 +90,7 @@ class AudioBank:
         return len(self._queue)
 
     def _load(self, path: str):
-        snd = self._cache.get(path)
-        if snd is None and pygame.mixer.get_init():
-            try:
-                snd = self._cache[path] = pygame.mixer.Sound(path)
-            except pygame.error:
-                snd = None
-        return snd
+        return carregar(path)
 
     # ---- playing -----------------------------------------------------------------------
     def play(self, key: str, interrupt: bool = True) -> bool:
@@ -124,9 +119,33 @@ class AudioBank:
             self._channel.stop()
 
 
+def carregar(path: str):
+    """Decode a clip once (shared cache). Returns the Sound, or None if there is no audio."""
+    snd = _SOUNDS.get(path)
+    if snd is None and pygame.mixer.get_init():
+        try:
+            snd = _SOUNDS[path] = pygame.mixer.Sound(path)
+        except pygame.error:
+            snd = None
+    return snd
+
+
+def carregado(path: str) -> bool:
+    return path in _SOUNDS
+
+
+def ficheiros(folder: str) -> list[str]:
+    """Every clip in a folder (all variants)."""
+    return [p for paths in scan(folder).values() for p in paths]
+
+
 def init_mixer() -> None:
+    # Same rate as the recordings (44.1 kHz, mono): no resampling and half the memory of stereo.
+    # In the browser the audio runs on the page's main thread: a small buffer makes it stutter
+    # on phones, so the web gets a bigger one (≈ 90 ms of delay, not noticeable for speech).
+    web = sys.platform == "emscripten"
     try:
-        pygame.mixer.pre_init(44100, -16, 2, 512)   # same rate as the recordings: no resampling
+        pygame.mixer.pre_init(44100, -16, 1, 4096 if web else 512)
         pygame.mixer.init()
     except pygame.error:
         AudioBank.enabled = False  # no audio device: game still works, silently
