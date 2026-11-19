@@ -249,15 +249,19 @@ class _NoConjunto(Completar):
     """A blank that may only be filled with numbers of N, Z or Q. If the right number is not in the
     set, the answer is the 'não existe' tile."""
 
+    ERROS = {"fora_do_conjunto": "deu um número, mas o resultado sai do conjunto (a resposta era 'não existe')"}
+
     def __init__(self, conjunto, conta, certo, opcoes, erros=None, **kw):
         if conjunto not in _CONJUNTOS:
             raise ValueError(f"conjunto desconhecido {conjunto!r}: usar 'N', 'Z' ou 'Q'")
         self.rotulo, dentro = _CONJUNTOS[conjunto]
         certo = _num(certo)
         resposta = certo if dentro(certo) else NAO_EXISTE
-        validas = [_num(o) for o in opcoes if dentro(_num(o)) and not _same(_num(o), resposta)]
-        super().__init__(conta, resposta, [resposta] + validas[:2] + [NAO_EXISTE],
-                         {k: v for k, v in (erros or {}).items() if dentro(_num(k))}, **kw)
+        validas = [_num(o) for o in opcoes if dentro(_num(o)) and not _same(_num(o), resposta)][:2]
+        erros = {k: v for k, v in (erros or {}).items() if dentro(_num(k))}
+        if resposta is NAO_EXISTE:      # the result leaves the set: any number given is that mistake
+            erros = {**{v: "fora_do_conjunto" for v in validas}, **erros}
+        super().__init__(conta, resposta, [resposta] + validas + [NAO_EXISTE], erros, **kw)
 
     def desenhar_alvo(self, surf, ctx):
         size = 38
@@ -289,7 +293,7 @@ class SimetricoEm(_NoConjunto):
 
 class InversoEm(_NoConjunto):
     """a · ▢ = 1 inside a set: in Z only 1 and −1 have an inverse, so Z is not a field."""
-    ERROS = {"simetrico_inverso": "confundiu o inverso (1/a) com o simétrico (−a)"}
+    ERROS = {**_NoConjunto.ERROS, "simetrico_inverso": "confundiu o inverso (1/a) com o simétrico (−a)"}
 
     def __init__(self, conjunto, a, **kw):
         a = _num(a)

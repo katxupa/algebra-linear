@@ -697,3 +697,15 @@ def test_every_lesson_of_the_sebenta_is_playable():
     for n in range(1, 9):
         assert not aulas[n].erro and not aulas[n].em_breve and len(aulas[n].desafios) >= 7
 
+
+
+def test_a_number_outside_the_set_is_its_own_mistake():
+    from engine.challenges.corpo import NAO_EXISTE as NE
+    d = FechadoEm("N", 3, "-", 5)
+    d.iniciar()
+    d.sel = next(t.valor for t in d.tiles if t.valor is not NE)
+    assert d.avaliar() == "fora_do_conjunto"
+    i = InversoEm("Z", 2)
+    i.iniciar()
+    i.sel = Fraction(-2)
+    assert i.avaliar() == "simetrico_inverso"          # the specific mistake wins

@@ -11,7 +11,7 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 | `erro` | errou (genérico, quando não é um erro conhecido) | ☑️ 6 compartilhado(s) |
 | `sequencia` | acertou várias seguidas sem errar (a cada 3); se faltar, toca sucesso | ☑️ 8 compartilhado(s) |
 | `finalmente` | acertou depois de errar 2+ vezes; se faltar, toca sucesso | ☑️ 4 compartilhado(s) |
-| `dica` | errou várias vezes seguidas: aparece uma dica visual | ⬜ falta |
+| `dica` | errou várias vezes seguidas: aparece uma dica visual | ✅ 3 na aula |
 | `parado` | ficou 20s sem mexer em nada | ☑️ 4 compartilhado(s) |
 | `fim` | terminou a aula | ⬜ falta |
 
@@ -19,12 +19,13 @@ Grave em .ogg (ou .wav e rode com `--convert`). Variações: `chave_1.ogg`, `cha
 
 | chave | quando toca | desafios | status |
 |---|---|---|---|
-| `neutro_trocado` | trocou o neutro da soma (0) com o do produto (1) | 1, 2 | ⬜ falta |
-| `simetrico_inverso` | confundiu o simétrico (−a) com o inverso (1/a) | 3, 4, 5, 6, 11, 16, 17 | ⬜ falta |
-| `dividir_por_zero` | tentou dar um inverso ao zero | 4, 6, 11 | ⬜ falta |
-| `comutatividade` | pôs o mesmo número dos dois lados (não trocou a ordem) | 7, 8 | ⬜ falta |
-| `associatividade` | trocou os números ao mudar os parênteses de lugar | 9 | ⬜ falta |
-| `distributividade` | esqueceu de multiplicar o segundo termo (não distribuiu) | 10 | ⬜ falta |
+| `neutro_trocado` | trocou o neutro da soma (0) com o do produto (1) | 1, 2 | ✅ 1 na aula |
+| `simetrico_inverso` | confundiu o simétrico (−a) com o inverso (1/a) | 3, 4, 5, 6, 11, 16, 17 | ✅ 1 na aula |
+| `dividir_por_zero` | tentou dar um inverso ao zero | 4, 6, 11 | ✅ 3 na aula |
+| `comutatividade` | pôs o mesmo número dos dois lados (não trocou a ordem) | 7, 8 | ✅ 1 na aula |
+| `associatividade` | trocou os números ao mudar os parênteses de lugar | 9 | ✅ 1 na aula |
+| `distributividade` | esqueceu de multiplicar o segundo termo (não distribuiu) | 10 | ✅ 1 na aula |
+| `fora_do_conjunto` | deu um número, mas o resultado sai do conjunto (a resposta era 'não existe') | 12, 13, 14, 15, 16, 17 | ✅ 1 na aula |
 
 ## Desafios
 
